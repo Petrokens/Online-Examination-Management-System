@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination in Progress</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* The Locked Header */
+        body { padding-top: 70px; background-color: #f8f9fa; }
+        .exam-header { position: fixed; top: 0; width: 100%; z-index: 1000; }
+
+        /* The Grid Palette Boxes */
+        .palette-btn { width: 45px; height: 45px; margin: 4px; font-weight: bold; }
+        .status-unanswered { background-color: #e9ecef; color: #495057; border: 1px solid #ced4da; }
+        .status-answered { background-color: #198754; color: white; border: none; }
+        .status-flagged { background-color: #ffc107; color: #000; border: none; }
+
+        /* Big Clickable Options */
+        .option-label { display: block; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .option-label:hover { background-color: #e2eef9; border-color: #0d6efd; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark exam-header shadow-sm">
+    <div class="container-fluid px-4">
+        <span class="navbar-brand mb-0 h1" th:text="${exam.examName}">Exam Title Placeholder</span>
+        <div class="d-flex align-items-center gap-4">
+            <div class="text-white bg-danger px-3 py-1 rounded fw-bold fs-5" id="timerDisplay">
+                60:00
+            </div>
+            <button class="btn btn-outline-light fw-bold" onclick="submitExam()">Submit Exam</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mt-4">
+    <div class="row">
+
+        <div class="col-lg-8 col-xl-9 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 text-primary fw-bold">Question 1 of 50</h5>
+                </div>
+                <div class="card-body p-4 p-md-5">
+
+                    <p class="fs-4 mb-4">What is the default port number for a Spring Boot application?</p>
+
+                    <div class="form-check mb-3 p-0">
+                        <label class="option-label">
+                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="A">
+                            8080
+                        </label>
+                    </div>
+                    <div class="form-check mb-3 p-0">
+                        <label class="option-label">
+                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="B">
+                            3306
+                        </label>
+                    </div>
+                    <div class="form-check mb-3 p-0">
+                        <label class="option-label">
+                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="C">
+                            80
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light p-3 d-flex justify-content-between">
+                    <button class="btn btn-secondary px-4">Previous</button>
+                    <button class="btn btn-warning px-4 fw-bold">Flag for Review</button>
+                    <button class="btn btn-primary px-5 fw-bold">Save & Next</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-xl-3">
+            <div class="card shadow-sm border-0 position-sticky" style="top: 90px;">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">Question Palette</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 text-muted small">
+                        <span><span class="badge bg-success me-1">&nbsp;</span>Answered</span>
+                        <span><span class="badge bg-warning me-1">&nbsp;</span>Flagged</span>
+                        <span><span class="badge bg-light border text-dark me-1">&nbsp;</span>Not Visited</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex flex-wrap">
+                        <button class="btn palette-btn status-answered">1</button>
+                        <button class="btn palette-btn status-flagged">2</button>
+                        <button class="btn palette-btn status-unanswered">3</button>
+                        <button class="btn palette-btn status-unanswered">4</button>
+                        <button class="btn palette-btn status-unanswered">5</button>
+                        <button class="btn palette-btn status-unanswered">6</button>
+                        <button class="btn palette-btn status-unanswered">7</button>
+                        <button class="btn palette-btn status-unanswered">8</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Set timer for 60 minutes
+    let timeInSeconds = 60 * 60;
+    const display = document.getElementById('timerDisplay');
+
+    function updateTimer() {
+        const minutes = Math.floor(timeInSeconds / 60);
+        let seconds = timeInSeconds % 60;
+
+        if (seconds < 10) { seconds = '0' + seconds; }
+        display.innerText = `${minutes}:${seconds}`;
+
+        // Trigger Flashing Red Clock during final 5 minutes
+        if (timeInSeconds < 300) {
+            display.classList.add('bg-danger');
+            display.classList.toggle('opacity-50'); // Flashing effect
+        }
+
+        if (timeInSeconds > 0) {
+            timeInSeconds--;
+        } else {
+            alert("Time is up! Auto-submitting exam.");
+            submitExam();
+        }
+    }
+
+    // Run timer every second
+    setInterval(updateTimer, 1000);
+
+    function submitExam() {
+        // This will eventually trigger the Submission Safety Net modal!
+        alert("Submission Safety Net: Are you sure you want to submit?");
+    }
+</script>
+
+</body>
+</html>

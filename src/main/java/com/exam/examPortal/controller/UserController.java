@@ -58,6 +58,6 @@ public class UserController {
         }
 
         // Success! Send them to their dashboard
-        return "redirect:/dashboard";
+        return "redirect:/exam/dashboard";
     }
 }
