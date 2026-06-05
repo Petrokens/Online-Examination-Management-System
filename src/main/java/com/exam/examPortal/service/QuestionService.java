@@ -6,7 +6,6 @@ import com.exam.examPortal.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-// THIS IS THE LINE THAT WAS MISSING!
 import java.util.List;
 
 @Service

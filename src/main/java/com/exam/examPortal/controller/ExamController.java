@@ -1,7 +1,9 @@
 package com.exam.examPortal.controller;
 
 import com.exam.examPortal.entity.Exam;
+import com.exam.examPortal.entity.Question;
 import com.exam.examPortal.service.ExamService;
+import com.exam.examPortal.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +17,9 @@ public class ExamController {
 
     @Autowired
     private ExamService examService;
+
+    @Autowired
+    private QuestionService questionService;
 
     // --- DASHBOARD ---
 
@@ -55,11 +60,16 @@ public class ExamController {
     // 4. START AN EXAM: When a student clicks "Take Exam #5"
     @GetMapping("/start/{id}")
     public String startExam(@PathVariable Long id, Model model) {
-        // Grab the specific exam from the database using the ID in the URL
+        // 1. Grab the specific exam from the database using the ID in the URL
         Exam requestedExam = examService.getExamById(id);
 
-        // Put that specific exam on the tray
+        // 2. NEW: Grab all the questions for this specific exam
+        // (Note: Make sure your method name here matches what you wrote in QuestionService!)
+        List<Question> examQuestions = questionService.getQuestionsByExamId(id);
+
+        // 3. Put BOTH the exam and the questions on the tray
         model.addAttribute("exam", requestedExam);
+        model.addAttribute("questions", examQuestions); // THIS FIXES THE 500 ERROR
 
         return "take-exam"; // Looks for take-exam.html
     }

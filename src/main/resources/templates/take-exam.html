@@ -3,99 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examination in Progress</title>
+    <title th:text="${exam.examName} + ' - Examination'">Examination Workstation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* The Locked Header */
-        body { padding-top: 70px; background-color: #f8f9fa; }
-        .exam-header { position: fixed; top: 0; width: 100%; z-index: 1000; }
-
-        /* The Grid Palette Boxes */
-        .palette-btn { width: 45px; height: 45px; margin: 4px; font-weight: bold; }
-        .status-unanswered { background-color: #e9ecef; color: #495057; border: 1px solid #ced4da; }
-        .status-answered { background-color: #198754; color: white; border: none; }
-        .status-flagged { background-color: #ffc107; color: #000; border: none; }
-
-        /* Big Clickable Options */
-        .option-label { display: block; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .option-label:hover { background-color: #e2eef9; border-color: #0d6efd; }
+        .question-card {
+            display: none; /* Hide all question panels by default */
+        }
+        .question-card.active {
+            display: block; /* Show only the currently active question card */
+        }
+        .palette-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-<nav class="navbar navbar-dark bg-dark exam-header shadow-sm">
+<nav class="navbar navbar-dark bg-dark shadow-sm sticky-top">
     <div class="container-fluid px-4">
-        <span class="navbar-brand mb-0 h1" th:text="${exam.examName}">Exam Title Placeholder</span>
-        <div class="d-flex align-items-center gap-4">
-            <div class="text-white bg-danger px-3 py-1 rounded fw-bold fs-5" id="timerDisplay">
-                60:00
-            </div>
-            <button class="btn btn-outline-light fw-bold" onclick="submitExam()">Submit Exam</button>
+        <span class="navbar-brand fw-bold">✏️ Examination System</span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-light bg-danger px-3 py-1 rounded-pill fw-bold small" id="timerDisplay">
+                Time Remaining: --:--
+            </span>
+            <button class="btn btn-warning btn-sm fw-bold" onclick="triggerSubmissionSafetyNet()">Submit Exam</button>
         </div>
     </div>
 </nav>
 
-<div class="container-fluid px-4 mt-4">
+<div class="container-fluid mt-4 px-4">
     <div class="row">
 
-        <div class="col-lg-8 col-xl-9 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 text-primary fw-bold">Question 1 of 50</h5>
-                </div>
-                <div class="card-body p-4 p-md-5">
-
-                    <p class="fs-4 mb-4">What is the default port number for a Spring Boot application?</p>
-
-                    <div class="form-check mb-3 p-0">
-                        <label class="option-label">
-                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="A">
-                            8080
-                        </label>
-                    </div>
-                    <div class="form-check mb-3 p-0">
-                        <label class="option-label">
-                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="B">
-                            3306
-                        </label>
-                    </div>
-                    <div class="form-check mb-3 p-0">
-                        <label class="option-label">
-                            <input class="form-check-input ms-2 me-3" type="radio" name="answer" value="C">
-                            80
-                        </label>
-                    </div>
-                </div>
-
-                <div class="card-footer bg-light p-3 d-flex justify-content-between">
-                    <button class="btn btn-secondary px-4">Previous</button>
-                    <button class="btn btn-warning px-4 fw-bold">Flag for Review</button>
-                    <button class="btn btn-primary px-5 fw-bold">Save & Next</button>
-                </div>
+        <div class="col-lg-9 mb-4">
+            <div class="card shadow-sm border-0 mb-3 bg-white p-3 rounded-3">
+                <h4 class="fw-bold text-secondary mb-0" th:text="${exam.examName}">Exam Name Placeholder</h4>
             </div>
+
+            <form id="examForm" th:action="@{/exam/submit/{id}(id=${exam.examId})}" method="post">
+
+                <div th:each="question, stat : ${questions}"
+                     th:id="'questionCard-' + ${stat.index}"
+                     class="card shadow-sm border-0 question-card p-4 rounded-3 bg-white mb-3"
+                     th:classappend="${stat.first} ? 'active' : ''"
+                     th:data-index="${stat.index}">
+
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                        <h5 class="fw-bold text-primary mb-0">
+                            Question <span th:text="${stat.count}">1</span> of <span th:text="${questions.size()}">10</span>
+                        </h5>
+                        <span class="badge bg-secondary p-2 fw-semibold" th:text="${question.marks} + ' Marks'">1 Mark</span>
+                    </div>
+
+                    <input type="hidden" th:name="'answers[' + ${stat.index} + '].questionId'" th:value="${question.questionId}" />
+
+                    <p class="fs-5 fw-semibold text-dark mb-4" th:text="${question.questionText}">
+                        Question prompt placeholder text.
+                    </p>
+
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="A" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <div><strong class="me-2">A.</strong> <span th:text="${question.optionA}">Option A</span></div>
+                        </label>
+
+                        <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="B" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <div><strong class="me-2">B.</strong> <span th:text="${question.optionB}">Option B</span></div>
+                        </label>
+
+                        <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="C" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <div><strong class="me-2">C.</strong> <span th:text="${question.optionC}">Option C</span></div>
+                        </label>
+
+                        <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="D" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <div><strong class="me-2">D.</strong> <span th:text="${question.optionD}">Option D</span></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center p-3 card shadow-sm border-0 rounded-3 bg-white">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" id="prevBtn" onclick="navigateToPreviousQuestion()">Previous</button>
+                    <button type="button" class="btn btn-info text-white px-4 fw-bold" id="reviewBtn" onclick="toggleFlagForReview()">Flag for Review</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold" id="nextBtn" onclick="navigateToNextQuestion()">Save & Next</button>
+                </div>
+            </form>
         </div>
 
-        <div class="col-lg-4 col-xl-3">
-            <div class="card shadow-sm border-0 position-sticky" style="top: 90px;">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold">Question Palette</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3 text-muted small">
-                        <span><span class="badge bg-success me-1">&nbsp;</span>Answered</span>
-                        <span><span class="badge bg-warning me-1">&nbsp;</span>Flagged</span>
-                        <span><span class="badge bg-light border text-dark me-1">&nbsp;</span>Not Visited</span>
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0 p-4 rounded-3 bg-white position-sticky" style="top: 80px;">
+                <h5 class="fw-bold mb-3 text-dark">Question Palette</h5>
+
+                <div class="d-flex flex-wrap gap-2 mb-4" id="paletteContainer">
+                    <div th:each="question, stat : ${questions}"
+                         th:id="'paletteBtn-' + ${stat.index}"
+                         class="palette-btn border bg-light text-secondary"
+                         th:text="${stat.count}"
+                         th:onclick="'jumpToQuestion(' + ${stat.index} + ')'">
+                        1
                     </div>
-                    <hr>
-                    <div class="d-flex flex-wrap">
-                        <button class="btn palette-btn status-answered">1</button>
-                        <button class="btn palette-btn status-flagged">2</button>
-                        <button class="btn palette-btn status-unanswered">3</button>
-                        <button class="btn palette-btn status-unanswered">4</button>
-                        <button class="btn palette-btn status-unanswered">5</button>
-                        <button class="btn palette-btn status-unanswered">6</button>
-                        <button class="btn palette-btn status-unanswered">7</button>
-                        <button class="btn palette-btn status-unanswered">8</button>
+                </div>
+
+                <div class="border-top pt-3">
+                    <h6 class="small fw-bold text-uppercase text-muted mb-3">Status Legend</h6>
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="border bg-light rounded" style="width: 16px; height: 16px;"></div>
+                            <span>Unvisited / Unanswered</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success rounded" style="width: 16px; height: 16px;"></div>
+                            <span class="text-success fw-semibold">Saved & Answered</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-warning rounded" style="width: 16px; height: 16px;"></div>
+                            <span class="text-warning fw-semibold">Flagged for Review</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,40 +136,147 @@
     </div>
 </div>
 
-<script>
-    // Set timer for 60 minutes
-    let timeInSeconds = 60 * 60;
-    const display = document.getElementById('timerDisplay');
+<div class="modal fade" id="safetyNetModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark fw-bold">
+                <h5 class="modal-title fw-bold">⚠️ Submission Safety Net</h5>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-1 fs-5 fw-semibold">Are you sure you want to submit your exam?</p>
+                <p class="text-muted small">Once submitted, you will not be able to modify your choices or re-enter the session.</p>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-outline-secondary fw-semibold" data-bs-dismiss="modal">Cancel and Return</button>
+                <button type="button" class="btn btn-danger fw-bold px-4" onclick="executeFinalFormSubmission()">Confirm Submission</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function updateTimer() {
-        const minutes = Math.floor(timeInSeconds / 60);
-        let seconds = timeInSeconds % 60;
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    let totalQuestions = /*[[${questions.size()}]]*/ 0;
+    let currentQuestionIndex = 0;
+    let flaggedQuestions = new Set();
+    let bootstrapSafetyModal = null;
 
-        if (seconds < 10) { seconds = '0' + seconds; }
-        display.innerText = `${minutes}:${seconds}`;
+    document.addEventListener("DOMContentLoaded", function() {
+        bootstrapSafetyModal = new bootstrap.Modal(document.getElementById('safetyNetModal'));
+        updateNavigationControlState();
+        highlightActivePaletteElement();
+    });
 
-        // Trigger Flashing Red Clock during final 5 minutes
-        if (timeInSeconds < 300) {
-            display.classList.add('bg-danger');
-            display.classList.toggle('opacity-50'); // Flashing effect
-        }
-
-        if (timeInSeconds > 0) {
-            timeInSeconds--;
-        } else {
-            alert("Time is up! Auto-submitting exam.");
-            submitExam();
+    function showQuestion(index) {
+        document.querySelectorAll('.question-card').forEach(card => card.classList.remove('active'));
+        const targetCard = document.getElementById(`questionCard-${index}`);
+        if(targetCard) {
+            targetCard.classList.add('active');
+            currentQuestionIndex = index;
+            updateNavigationControlState();
+            highlightActivePaletteElement();
         }
     }
 
-    // Run timer every second
-    setInterval(updateTimer, 1000);
+    function navigateToNextQuestion() {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            showQuestion(currentQuestionIndex + 1);
+        } else {
+            triggerSubmissionSafetyNet();
+        }
+    }
 
-    function submitExam() {
-        // This will eventually trigger the Submission Safety Net modal!
-        alert("Submission Safety Net: Are you sure you want to submit?");
+    function navigateToPreviousQuestion() {
+        if (currentQuestionIndex > 0) {
+            showQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function jumpToQuestion(index) {
+        showQuestion(index);
+    }
+
+    function updateNavigationControlState() {
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        prevBtn.disabled = (currentQuestionIndex === 0);
+        if (currentQuestionIndex === totalQuestions - 1) {
+            nextBtn.textContent = "Finish & Submit";
+            nextBtn.classList.remove('btn-primary');
+            nextBtn.classList.add('btn-warning');
+        } else {
+            nextBtn.textContent = "Save & Next";
+            nextBtn.classList.remove('btn-warning');
+            nextBtn.classList.add('btn-primary');
+        }
+
+        const currentCard = document.getElementById(`questionCard-${currentQuestionIndex}`);
+        const reviewBtn = document.getElementById('reviewBtn');
+        if(flaggedQuestions.has(currentQuestionIndex)) {
+            reviewBtn.textContent = "Unflag Review";
+            reviewBtn.classList.replace('btn-info', 'btn-secondary');
+        } else {
+            reviewBtn.textContent = "Flag for Review";
+            reviewBtn.classList.replace('btn-secondary', 'btn-info');
+        }
+    }
+
+    function highlightActivePaletteElement() {
+        document.querySelectorAll('.palette-btn').forEach((btn, idx) => {
+            btn.style.borderWidth = (idx === currentQuestionIndex) ? "3px" : "1px";
+            if(idx === currentQuestionIndex) {
+                btn.classList.add('border-dark');
+            } else {
+                btn.classList.remove('border-dark');
+            }
+        });
+    }
+
+    function markAsAnswered(index) {
+        const paletteBtn = document.getElementById(`paletteBtn-${index}`);
+        if (paletteBtn && !flaggedQuestions.has(index)) {
+            paletteBtn.classList.remove('bg-light', 'text-secondary');
+            paletteBtn.classList.add('bg-success', 'text-white');
+        }
+    }
+
+    function toggleFlagForReview() {
+        const paletteBtn = document.getElementById(`paletteBtn-${currentQuestionIndex}`);
+        if (!paletteBtn) return;
+
+        if (flaggedQuestions.has(currentQuestionIndex)) {
+            flaggedQuestions.delete(currentQuestionIndex);
+            paletteBtn.classList.remove('bg-warning', 'text-dark');
+
+            const radioButtons = document.querySelectorAll(`#questionCard-${currentQuestionIndex} .option-radio`);
+            let isAnswered = Array.from(radioButtons).some(radio => radio.checked);
+
+            if (isAnswered) {
+                paletteBtn.classList.add('bg-success', 'text-white');
+            } else {
+                paletteBtn.classList.add('bg-light', 'text-secondary');
+            }
+        } else {
+            flaggedQuestions.add(currentQuestionIndex);
+            paletteBtn.classList.remove('bg-light', 'text-secondary', 'bg-success', 'text-white');
+            paletteBtn.classList.add('bg-warning', 'text-dark');
+        }
+        updateNavigationControlState();
+    }
+
+    function triggerSubmissionSafetyNet() {
+        if(bootstrapSafetyModal) {
+            bootstrapSafetyModal.show();
+        }
+    }
+
+    function executeFinalFormSubmission() {
+        if(bootstrapSafetyModal) {
+            bootstrapSafetyModal.hide();
+        }
+        document.getElementById('examForm').submit();
     }
 </script>
-
 </body>
 </html>
