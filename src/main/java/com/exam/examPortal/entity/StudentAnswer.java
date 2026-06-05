@@ -20,6 +20,10 @@ public class StudentAnswer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
+    @ManyToOne
+    @JoinColumn(name = "exam_id")
+    private Exam exam;
+
     // The option they clicked (e.g., "A", "B", "C", or "D")
     private String selectedOption;
 
@@ -36,4 +40,8 @@ public class StudentAnswer {
 
     public String getSelectedOption() { return selectedOption; }
     public void setSelectedOption(String selectedOption) { this.selectedOption = selectedOption; }
+
+    public Exam getExam() { return exam; }
+    public void setExam(Exam exam) { this.exam = exam; }
+
 }

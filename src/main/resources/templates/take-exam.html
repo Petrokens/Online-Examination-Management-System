@@ -47,7 +47,7 @@
                 <h4 class="fw-bold text-secondary mb-0" th:text="${exam.examName}">Exam Name Placeholder</h4>
             </div>
 
-            <form id="examForm" th:action="@{/exam/submit/{id}(id=${exam.examId})}" method="post">
+            <form id="examForm" th:action="@{/result/submit/{id}(id=${exam.examId})}" method="post">
 
                 <div th:each="question, stat : ${questions}"
                      th:id="'questionCard-' + ${stat.index}"

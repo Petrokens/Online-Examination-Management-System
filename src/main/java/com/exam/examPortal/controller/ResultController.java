@@ -1,11 +1,19 @@
 package com.exam.examPortal.controller;
 
 import com.exam.examPortal.entity.Result;
+import com.exam.examPortal.entity.StudentAnswer;
+import com.exam.examPortal.entity.User;
+import com.exam.examPortal.repository.ExamRepository;
+import com.exam.examPortal.repository.ResultRepository;
+import com.exam.examPortal.repository.StudentAnswerRepository;
 import com.exam.examPortal.service.ResultService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/result")
@@ -14,30 +22,45 @@ public class ResultController {
     @Autowired
     private ResultService resultService;
 
-    // --- SUBMITTING THE EXAM ---
+    @Autowired
+    private StudentAnswerRepository studentAnswerRepository; // Need this to find their answers
 
-    // 1. CATCH THE ANSWERS: When the student clicks "Submit Test"
-    @PostMapping("/submit")
-    public String submitExam() {
+    @Autowired
+    private ExamRepository examRepository;
 
-        // TODO: We will catch the student's selected answers from the HTML form here.
-        // Once we have them, we will pass them to the Auto-Grader like this:
-        // Result savedResult = resultService.calculateAndSaveResult(studentResult, studentAnswers);
+    @Autowired
+    private ResultRepository resultRepository;
 
-        // After grading is done, instantly redirect the student to see their score!
-        return "redirect:/result/view/1"; // (Using a placeholder ID '1' for now)
+    @PostMapping("/submit/{examId}")
+    public String submitExam(@PathVariable Long examId, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return "redirect:/login";
+
+        // 1. Get ALL answers for this user
+        List<StudentAnswer> allAnswers = studentAnswerRepository.findByUser(user);
+
+        // 2. Filter them manually for the specific Exam ID
+        // This uses the Question entity, which is definitely populated
+        List<StudentAnswer> examAnswers = allAnswers.stream()
+                .filter(a -> a.getQuestion() != null && a.getQuestion().getExam().getExamId().equals(examId))
+                .toList();
+
+        System.out.println("DEBUG: Filtered " + examAnswers.size() + " answers for exam " + examId);
+
+        Result result = new Result();
+        result.setUser(user);
+        result.setExam(examRepository.findById(examId).orElse(null));
+
+        // 3. Now the list is NOT empty, the Grading Engine will run!
+        resultService.calculateAndSaveResult(result, examAnswers);
+
+        return "redirect:/result/view/" + result.getResultId();
     }
 
-
-    // --- VIEWING THE SCORE ---
-
-    // 2. SHOW THE REPORT CARD: Display the Pass/Fail and Percentage
     @GetMapping("/view/{id}")
     public String viewResult(@PathVariable Long id, Model model) {
-
-        // TODO: Later, we will use the ID to fetch their actual grade from the database.
-        // For now, we are just telling the Host where to send the user.
-
-        return "result"; // Tells Thymeleaf to look for 'result.html'
+        Result result = resultRepository.findById(id).orElse(null);
+        model.addAttribute("result", result);
+        return "result";
     }
 }

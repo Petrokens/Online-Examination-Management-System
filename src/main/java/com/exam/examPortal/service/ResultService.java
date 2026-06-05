@@ -17,48 +17,35 @@ public class ResultService {
 
     // Notice we now ask for the Result AND the List of all their answers
     public Result calculateAndSaveResult(Result studentResult, List<StudentAnswer> studentAnswers) {
-
-        // --- 1. THE AUTO-GRADER LOOP ---
         int calculatedScore = 0;
+        int actualTotalMarks = 0; // NEW: track the sum of marks
 
         for (StudentAnswer answer : studentAnswers) {
             String selected = answer.getSelectedOption();
-            String correct = answer.getQuestion().getCorrectAnswer();
+            String correct = (answer.getQuestion() != null) ? answer.getQuestion().getCorrectAnswer() : "";
 
-            // Safety check: Make sure neither answer is blank before comparing
-            if (selected != null && correct != null) {
-                // .trim() chops off accidental spaces
-                // .equalsIgnoreCase() makes "True" match "true"
-                if (selected.trim().equalsIgnoreCase(correct.trim())) {
-                    // It's a match! Add the specific marks for this question
-                    calculatedScore += answer.getQuestion().getMarks();
-                }
+            // Sum the marks of EVERY question in the exam
+            actualTotalMarks += answer.getQuestion().getMarks();
+
+            String cleanSelected = (selected != null) ? selected.trim().toUpperCase() : "";
+            String cleanCorrect = (correct != null) ? correct.trim().toUpperCase() : "";
+
+            if (cleanSelected.equals(cleanCorrect) && !cleanSelected.isEmpty()) {
+                calculatedScore += answer.getQuestion().getMarks();
             }
         }
 
-        // Lock in the final calculated score
         studentResult.setScore(calculatedScore);
 
-        // --- 2. THE PERCENTAGE MATH ---
-        int totalMarks = studentResult.getExam().getTotalMarks();
+        // Use the dynamic total instead of the one from the database
+        double calculatedPercentage = (actualTotalMarks > 0) ? ((double) calculatedScore / actualTotalMarks) * 100.0 : 0.0;
+        studentResult.setPercentage((int) Math.round(calculatedPercentage));
 
-        // Calculate the percentage
-        double calculatedPercentage = ((double) calculatedScore / totalMarks) * 100;
-        studentResult.setPercentage((int)calculatedPercentage);
-
-        // --- 3. THE PASS/FAIL DECISION ---
+        // Pass/Fail Logic
         double requiredToPass = studentResult.getExam().getPassingPercentage();
+        studentResult.setStatus(calculatedPercentage >= requiredToPass ? "PASS" : "FAIL");
 
-        if (calculatedPercentage >= requiredToPass) {
-            studentResult.setStatus("PASS");
-        } else {
-            studentResult.setStatus("FAIL");
-        }
-
-        // Automatically stamp the exact date and time
         studentResult.setSubmissionTime(LocalDateTime.now());
-
-        // --- 4. THE TRIGGER ---
         return resultRepository.save(studentResult);
     }
 }

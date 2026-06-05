@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Exam Result</title>
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+        <div class="card-body text-center">
+            <h2 class="mb-4">Exam Result</h2>
+            <div class="display-4 fw-bold mb-3" th:text="${result.percentage} + '%'">0%</div>
+            <p class="h5 mb-4" th:text="'Status: ' + ${result.status}"
+               th:classappend="${result.status == 'PASS' ? 'text-success' : 'text-danger'}">Status</p>
+
+            <hr>
+            <div class="row text-start mt-3">
+                <div class="col-6"><strong>Score:</strong></div>
+                <div class="col-6" th:text="${result.score}">0</div>
+                <div class="col-6"><strong>Exam:</strong></div>
+                <div class="col-6" th:text="${result.exam.examName}">Exam Name</div>
+            </div>
+
+            <a href="/student/dashboard" class="btn btn-primary mt-4 w-100">Return to Dashboard</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
