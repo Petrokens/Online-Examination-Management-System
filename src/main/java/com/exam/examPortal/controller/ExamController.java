@@ -1,15 +1,21 @@
 package com.exam.examPortal.controller;
-
+import com.exam.examPortal.entity.User;
+import com.exam.examPortal.service.StudentAnswerService;
+import com.exam.examPortal.service.UserService;
 import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.Question;
+import com.exam.examPortal.entity.StudentAnswer;
 import com.exam.examPortal.service.ExamService;
 import com.exam.examPortal.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import jakarta.servlet.http.HttpSession;
+import java.util.*;
 
 @Controller
 @RequestMapping("/exam")
@@ -20,6 +26,12 @@ public class ExamController {
 
     @Autowired
     private QuestionService questionService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private StudentAnswerService studentAnswerService;
 
     // --- DASHBOARD ---
 
@@ -72,5 +84,28 @@ public class ExamController {
         model.addAttribute("questions", examQuestions); // THIS FIXES THE 500 ERROR
 
         return "take-exam"; // Looks for take-exam.html
+    }
+
+// ... inside your ExamController class ...
+
+    @PostMapping("/save-progress")
+    @ResponseBody
+    public String saveProgress(@RequestBody Map<String, Object> payload, HttpSession session) {
+        User loggedInUser = (User) session.getAttribute("user");
+
+        // LOGGING: This will print to your IDE console (where the server runs)
+        System.out.println("DEBUG: Received payload: " + payload);
+        System.out.println("DEBUG: Logged in user: " + (loggedInUser != null ? loggedInUser.getEmail() : "NULL"));
+
+        if (loggedInUser == null) {
+            return "error: not logged in";
+        }
+
+        Long questionId = Long.valueOf(payload.get("questionId").toString());
+        String selectedOption = payload.get("selectedOption").toString();
+
+        studentAnswerService.saveOrUpdate(loggedInUser, questionId, selectedOption);
+
+        return "saved";
     }
 }

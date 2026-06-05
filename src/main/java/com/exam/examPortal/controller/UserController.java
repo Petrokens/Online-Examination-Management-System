@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 @Controller // Changed from @RestController!
 @RequestMapping("/user")
@@ -49,15 +50,19 @@ public class UserController {
 
     // 2. CATCH THE DATA
     @PostMapping("/login")
-    public String loginUser(@RequestParam String email, @RequestParam String password, Model model) {
+    public String loginUser(@RequestParam String email, @RequestParam String password,
+                            Model model, HttpSession session) { // <-- Make sure it's here too
+
         User loggedInUser = userService.loginUser(email, password);
 
         if (loggedInUser == null) {
             model.addAttribute("error", "Invalid email or password.");
-            return "login"; // Reload the login page with an error
+            return "login";
         }
 
-        // Success! Send them to their dashboard
+        // Now it will work because you've imported HttpSession!
+        session.setAttribute("user", loggedInUser);
+
         return "redirect:/exam/dashboard";
     }
 }

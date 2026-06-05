@@ -70,22 +70,22 @@
 
                     <div class="d-flex flex-column gap-3 mb-4">
                         <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
-                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="A" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="A" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + '); autoSave(' + ${question.questionId} + ', \'A\')'" />
                             <div><strong class="me-2">A.</strong> <span th:text="${question.optionA}">Option A</span></div>
                         </label>
 
                         <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
-                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="B" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="B" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + '); autoSave(' + ${question.questionId} + ', \'B\')'" />
                             <div><strong class="me-2">B.</strong> <span th:text="${question.optionB}">Option B</span></div>
                         </label>
 
                         <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
-                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="C" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="C" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + '); autoSave(' + ${question.questionId} + ', \'C\')'" />
                             <div><strong class="me-2">C.</strong> <span th:text="${question.optionC}">Option C</span></div>
                         </label>
 
                         <label class="p-3 border rounded-3 d-flex align-items-center gap-3 option-label bg-light" style="cursor: pointer;">
-                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="D" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + ')'" />
+                            <input type="radio" th:name="'answers[' + ${stat.index} + '].selectedOption'" value="D" class="form-check-input option-radio" th:onclick="'markAsAnswered(' + ${stat.index} + '); autoSave(' + ${question.questionId} + ', \'D\')'" />
                             <div><strong class="me-2">D.</strong> <span th:text="${question.optionD}">Option D</span></div>
                         </label>
                     </div>
@@ -331,6 +331,27 @@
         }
         document.getElementById('examForm').submit();
     }
+
+    function autoSave(questionId, selectedOption) {
+    fetch('/exam/save-progress', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            questionId: questionId,
+            selectedOption: selectedOption
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log("Auto-save successful!");
+        } else {
+            console.error("Auto-save failed.");
+        }
+    })
+    .catch(error => console.error("Error connecting to server:", error));
+}
 </script>
 </body>
 </html>
