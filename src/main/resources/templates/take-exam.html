@@ -91,10 +91,22 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center p-3 card shadow-sm border-0 rounded-3 bg-white">
-                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" id="prevBtn" onclick="navigateToPreviousQuestion()">Previous</button>
-                    <button type="button" class="btn btn-info text-white px-4 fw-bold" id="reviewBtn" onclick="toggleFlagForReview()">Flag for Review</button>
-                    <button type="button" class="btn btn-primary px-4 fw-bold" id="nextBtn" onclick="navigateToNextQuestion()">Save & Next</button>
+                <div class="d-flex justify-content-between align-items-center p-3 card shadow-sm border-0 bg-white mt-3 w-100" style="border-radius: 4px;">
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary fw-bold px-4" id="prevBtn" onclick="navigateToPreviousQuestion()" style="border-radius: 2px;">
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-info text-white fw-bold px-4" id="reviewBtn" onclick="toggleFlagForReview()" style="border-radius: 2px;">
+                            Flag for Review
+                        </button>
+                    </div>
+
+                    <div class="d-flex">
+                        <button type="button" class="btn btn-primary fw-bold px-4" id="nextBtn" onclick="navigateToNextQuestion()" style="border-radius: 2px;">
+                            Save & Next
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -114,7 +126,7 @@
                 </div>
 
                 <div class="border-top pt-3">
-                    <h6 class="small fw-bold text-uppercase text-muted mb-3">Status Legend</h6>
+                    <h6 class="small fw-bold text-uppercase text-muted mb-3">Status</h6>
                     <div class="d-flex flex-column gap-2 small">
                         <div class="d-flex align-items-center gap-2">
                             <div class="border bg-light rounded" style="width: 16px; height: 16px;"></div>
@@ -156,17 +168,59 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
+    // --- 1. MEMORY & STATE ---
     let totalQuestions = /*[[${questions.size()}]]*/ 0;
     let currentQuestionIndex = 0;
     let flaggedQuestions = new Set();
     let bootstrapSafetyModal = null;
 
+    // --- NEW: TIMER VARIABLES ---
+    // Thymeleaf grabs the duration directly from your database!
+    let examDurationMinutes = /*[[${exam.durationMinutes}]]*/ 60;
+    let timeRemainingSeconds = examDurationMinutes * 60;
+    let timerInterval;
+
+    // --- 2. INITIALIZATION (When page loads) ---
     document.addEventListener("DOMContentLoaded", function() {
         bootstrapSafetyModal = new bootstrap.Modal(document.getElementById('safetyNetModal'));
         updateNavigationControlState();
         highlightActivePaletteElement();
+
+        // Start the countdown clock the second the page loads!
+        startTimer();
     });
 
+    // --- NEW: THE COUNTDOWN ENGINE ---
+    function startTimer() {
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    timerInterval = setInterval(function() {
+        if (timeRemainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerDisplay.textContent = "Time's up!";
+            alert("Time is up! Your exam will now be submitted.");
+            document.getElementById('examForm').submit();
+            return;
+        }
+
+        // Calculate Hours, Minutes, and Seconds
+        let hours = Math.floor(timeRemainingSeconds / 3600);
+        let minutes = Math.floor((timeRemainingSeconds % 3600) / 60);
+        let seconds = timeRemainingSeconds % 60;
+
+        // Format: Add leading zeros
+        let h = hours > 0 ? (hours < 10 ? "0" + hours + ":" : hours + ":") : "";
+        let m = minutes < 10 ? "0" + minutes : minutes;
+        let s = seconds < 10 ? "0" + seconds : seconds;
+
+        // Update display
+        timerDisplay.textContent = `Time Remaining: ${h}${m}:${s}`;
+
+        timeRemainingSeconds--;
+    }, 1000);
+}
+
+    // --- 3. NAVIGATION & UI FUNCTIONS ---
     function showQuestion(index) {
         document.querySelectorAll('.question-card').forEach(card => card.classList.remove('active'));
         const targetCard = document.getElementById(`questionCard-${index}`);
