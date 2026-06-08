@@ -12,6 +12,9 @@ public class Exam {
 
     private String examName;
 
+    // Inside Exam.java
+    private Integer maxAttempts; // Add this field
+
     // We will store the duration in minutes (e.g., 60 for an hour)
     private int durationMinutes;
 
@@ -36,4 +39,7 @@ public class Exam {
 
     public int getPassingPercentage() { return passingPercentage; }
     public void setPassingPercentage(int passingPercentage) { this.passingPercentage = passingPercentage; }
+
+    public Integer getMaxAttempts() { return maxAttempts; }
+    public void setMaxAttempts(int maxAttempts) { this.maxAttempts = maxAttempts; }
 }

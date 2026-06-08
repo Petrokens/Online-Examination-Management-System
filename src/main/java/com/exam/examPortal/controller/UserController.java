@@ -63,6 +63,12 @@ public class UserController {
         // Now it will work because you've imported HttpSession!
         session.setAttribute("user", loggedInUser);
 
-        return "redirect:/exam/dashboard";
+        // Update your loginUser method for role-based redirection
+        if (loggedInUser != null) {
+            session.setAttribute("user", loggedInUser);
+
+        }
+
+        return "redirect:/student/dashboard";
     }
 }
