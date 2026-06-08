@@ -27,19 +27,23 @@ public class StudentController {
     private ResultRepository resultRepository;
 
     @GetMapping("/dashboard")
-    public String studentDashboard(HttpSession session, Model model) {
+    public String studentDashboard(
+            @RequestParam(name = "status", required = false) String status, // <--- ADD THIS PARAMETER
+            HttpSession session,
+            Model model) {
+
         User user = (User) session.getAttribute("user");
         if (user == null || !"STUDENT".equals(user.getRole())) {
             return "redirect:/login";
         }
 
-        // 1. Fetch data safely
+        // 1. Fetch data
         var results = resultRepository.findByUser(user, Sort.by(Sort.Direction.DESC, "submissionTime"));
         var exams = examRepository.findAll();
 
-        // 2. Safely calculate map, even if results is empty
+        // 2. Calculate map
         java.util.Map<Long, Long> attemptCountMap = results.stream()
-                .filter(r -> r.getExam() != null) // Ensure result has an exam
+                .filter(r -> r.getExam() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
                         r -> r.getExam().getExamId(),
                         java.util.stream.Collectors.counting()
@@ -50,11 +54,10 @@ public class StudentController {
         model.addAttribute("exams", exams);
         model.addAttribute("results", results);
         model.addAttribute("attemptCounts", attemptCountMap);
+        model.addAttribute("status", status); // <--- ADD THIS LINE TO PASS IT TO THE HTML
 
         return "student_dashboard";
     }
-
-    // Make sure this matches the link in your HTML (th:href="@{/student/results/all}")
     @GetMapping("/results/all")
     public String viewAllResults(
             @RequestParam(defaultValue = "0") int page,
@@ -73,6 +76,6 @@ public class StudentController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", pageResults.getTotalPages());
 
-        return "all_results";
+        return "all_results"; // Ensure you have all_results.html in your templates folder
     }
 }

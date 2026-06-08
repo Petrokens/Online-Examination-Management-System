@@ -44,17 +44,6 @@ public class ExamController {
 
     // --- DASHBOARD ---
 
-    // 1. SHOW ALL EXAMS: When a user logs in and goes to the dashboard
-    @GetMapping("/dashboard")
-    public String showDashboard(Model model) {
-        // The Waiter asks the Chef for the complete list of exams
-        List<Exam> allExams = examService.getAllExams();
-
-        // The Waiter puts the entire list on the tray for Thymeleaf
-        model.addAttribute("exams", allExams);
-
-        return "dashboard"; // Tells Thymeleaf to look for dashboard.html
-    }
 
     // --- TEACHER ACTIONS ---
 
@@ -73,7 +62,7 @@ public class ExamController {
         examService.addExam(exam);
 
         // Success! Jump straight back to the dashboard to see the updated list
-        return "redirect:/exam/dashboard";
+        return "redirect:/student/dashboard";
     }
 
     // --- STUDENT ACTIONS ---
@@ -87,7 +76,7 @@ public class ExamController {
         // --- ADD THIS CHECK ---
         long attemptsTaken = resultRepository.countByUserAndExam(user, requestedExam);
         if (attemptsTaken >= requestedExam.getMaxAttempts()) {
-            return "redirect:/exam/dashboard?error=limit_reached";
+            return "redirect:/student/dashboard?error=limit_reached";
         }
         // -----------------------
 
@@ -149,6 +138,6 @@ public class ExamController {
             session.removeAttribute("currentExamId");
         }
 
-        return "redirect:/exam/dashboard?status=terminated";
+        return "redirect:/student/dashboard?status=terminated";
     }
 }
