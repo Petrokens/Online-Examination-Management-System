@@ -34,7 +34,7 @@ public class StudentController {
         }
 
         // 1. Fetch data safely
-        var results = resultRepository.findByUser(user);
+        var results = resultRepository.findByUser(user, Sort.by(Sort.Direction.DESC, "submissionTime"));
         var exams = examRepository.findAll();
 
         // 2. Safely calculate map, even if results is empty

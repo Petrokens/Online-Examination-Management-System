@@ -1,12 +1,9 @@
 package com.exam.examPortal.controller;
-import com.exam.examPortal.entity.User;
-import com.exam.examPortal.service.StudentAnswerService;
-import com.exam.examPortal.service.UserService;
-import com.exam.examPortal.entity.Exam;
-import com.exam.examPortal.entity.Question;
-import com.exam.examPortal.entity.StudentAnswer;
-import com.exam.examPortal.service.ExamService;
-import com.exam.examPortal.service.QuestionService;
+import com.exam.examPortal.entity.*;
+import com.exam.examPortal.repository.ExamRepository;
+import com.exam.examPortal.repository.ResultRepository;
+import com.exam.examPortal.repository.StudentAnswerRepository;
+import com.exam.examPortal.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,7 +28,19 @@ public class ExamController {
     private UserService userService;
 
     @Autowired
+    private ResultService resultService;
+
+    @Autowired
     private StudentAnswerService studentAnswerService;
+
+    @Autowired
+    private ResultRepository resultRepository; // Spring connects this automatically
+
+    @Autowired
+    private ExamRepository examRepository;
+
+    @Autowired
+    private StudentAnswerRepository studentAnswerRepository; // Spring connects this automatically
 
     // --- DASHBOARD ---
 
@@ -71,22 +80,28 @@ public class ExamController {
 
     // 4. START AN EXAM: When a student clicks "Take Exam #5"
     @GetMapping("/start/{id}")
-    public String startExam(@PathVariable Long id, Model model) {
-        // 1. Grab the specific exam from the database using the ID in the URL
+    public String startExam(@PathVariable Long id, HttpSession session,Model model) {
+        User user = (User) session.getAttribute("user");
         Exam requestedExam = examService.getExamById(id);
 
-        // 2. NEW: Grab all the questions for this specific exam
-        // (Note: Make sure your method name here matches what you wrote in QuestionService!)
+        // --- ADD THIS CHECK ---
+        long attemptsTaken = resultRepository.countByUserAndExam(user, requestedExam);
+        if (attemptsTaken >= requestedExam.getMaxAttempts()) {
+            return "redirect:/exam/dashboard?error=limit_reached";
+        }
+        // -----------------------
+
         List<Question> examQuestions = questionService.getQuestionsByExamId(id);
-
-        // 3. Put BOTH the exam and the questions on the tray
         model.addAttribute("exam", requestedExam);
-        model.addAttribute("questions", examQuestions); // THIS FIXES THE 500 ERROR
+        model.addAttribute("questions", examQuestions);
 
-        return "take-exam"; // Looks for take-exam.html
+        // Set the session lock so they can't leave
+        session.setAttribute("isExamInProgress", true);
+        session.setAttribute("currentExamId", id);
+
+        return "take-exam";
     }
 
-// ... inside your ExamController class ...
 
     @PostMapping("/save-progress")
     @ResponseBody
@@ -107,5 +122,33 @@ public class ExamController {
         studentAnswerService.saveOrUpdate(loggedInUser, questionId, selectedOption);
 
         return "saved";
+    }
+
+    @GetMapping("/force-submit")
+    public String forceSubmitExam(HttpSession session) {
+        Long examId = (Long) session.getAttribute("currentExamId");
+        User user = (User) session.getAttribute("user");
+
+        if (examId != null && user != null) {
+            Exam exam = examRepository.findById(examId).orElse(null);
+
+            // Create a direct failing result instead of calculating their empty answers
+            Result result = new Result();
+            result.setUser(user);
+            result.setExam(exam);
+            result.setScore(0);           // Hardcode zero marks
+            result.setScore(0);   // Hardcode zero percent
+            result.setStatus("FAIL");      // Or "DISQUALIFIED" if your DB column supports it
+            result.setSubmissionTime(java.time.LocalDateTime.now());
+
+            // Directly save to the repository, bypassing the service calculations
+            resultRepository.save(result);
+
+            // Cleanup session locks
+            session.removeAttribute("isExamInProgress");
+            session.removeAttribute("currentExamId");
+        }
+
+        return "redirect:/exam/dashboard?status=terminated";
     }
 }

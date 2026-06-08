@@ -30,9 +30,36 @@
                         </div>
                     </div>
 
-                    <a th:if="(${attemptCounts[exam.examId]} ?: 0) < (${exam.maxAttempts} ?: 0)"
-                       th:href="@{'/exam/start/' + ${exam.examId}}"
-                       class="btn btn-success">Start Exam</a>
+                    <button th:if="(${attemptCounts[exam.examId]} ?: 0) < (${exam.maxAttempts} ?: 0)"
+                            th:onclick="'startExamSecurely(' + ${exam.examId} + ')'"
+                            class="btn btn-success">
+                        Start Exam
+                    </button>
+
+                    <script>
+                        async function startExamSecurely(examId) {
+                            const element = document.documentElement;
+
+                            // Check if the browser supports Fullscreen
+                            if (element.requestFullscreen) {
+                                try {
+                                    // Attempt to go fullscreen
+                                    await element.requestFullscreen();
+
+                                    // If successful, navigate to the exam
+                                    window.location.href = '/exam/start/' + examId;
+                                } catch (err) {
+                                    console.error("Fullscreen failed:", err);
+
+                                    // If user blocked it, alert them to proceed manually or click again
+                                    alert("To start the exam, you must permit full-screen mode. Please try clicking again.");
+                                }
+                            } else {
+                                // Fallback for older browsers
+                                window.location.href = '/exam/start/' + examId;
+                            }
+                        }
+                    </script>
 
                     <span th:if="(${attemptCounts[exam.examId]} ?: 0) >= (${exam.maxAttempts} ?: 0)"
                           class="badge bg-danger p-2">Limit Reached</span>
@@ -71,5 +98,35 @@
         </div>
     </div>
 </div>
+<button type="button"
+        th:if="(${attemptCounts[exam.examId]} ?: 0) < (${exam.maxAttempts} ?: 0)"
+        th:onclick="'startExamSecurely(' + ${exam.examId} + ')'"
+        class="btn btn-success">
+    Start Exam
+</button>
+
+<script>
+    async function startExamSecurely(examId) {
+        const element = document.documentElement;
+
+        // 1. Set the flag to true so the next page knows we are intentionally navigating
+        window.isTransitioning = true;
+
+        if (element.requestFullscreen) {
+            try {
+                // This click satisfies the browser's security requirement
+                await element.requestFullscreen();
+                // Now navigate to the exam
+                window.location.href = '/exam/start/' + examId;
+            } catch (err) {
+                console.error("Fullscreen failed:", err);
+                alert("Security Requirement: Please allow full-screen mode to begin your exam.");
+            }
+        } else {
+            // Fallback for browsers without fullscreen support
+            window.location.href = '/exam/start/' + examId;
+        }
+    }
+</script>
 </body>
 </html>
