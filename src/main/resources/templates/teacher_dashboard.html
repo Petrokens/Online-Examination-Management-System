@@ -55,10 +55,26 @@
                         </div>
                     </div>
 
-                    <div>
-                        <a th:href="@{/question/add/{id}(id=${exam.examId})}" class="btn btn-outline-success w-100 fw-semibold mt-2">
-                            Manage Questions &rarr;
-                        </a>
+                    <div class="card h-100 shadow-sm border-0 bg-white">
+                        <div class="card-body p-4 d-flex flex-column justify-content-between">
+                            <div>
+                                <a th:href="@{/question/add/{id}(id=${exam.examId})}" class="btn btn-outline-success w-100 fw-semibold mt-2">
+                                    Add Questions &rarr;
+                                </a>
+                                <a th:href="@{/teacher/edit/{id}(id=${exam.examId})}"
+                                   class="btn btn-outline-primary w-100 fw-semibold mt-2">
+                                    Edit Settings
+                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-danger w-100 fw-semibold mt-2"
+                                        th:data-exam-id="${exam.examId}"
+                                        onclick="prepareDelete(this.getAttribute('data-exam-id'))"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal">
+                                    Delete Exam
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -67,4 +83,28 @@
 </div>
 
 </body>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Examination</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this exam? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Confirm Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function prepareDelete(examId) {
+        const deleteLink = document.getElementById('confirmDeleteBtn');
+        deleteLink.setAttribute('href', '/teacher/delete/' + examId);
+    }
+</script>

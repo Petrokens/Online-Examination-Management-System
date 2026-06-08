@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @Controller
@@ -38,4 +38,49 @@ public class TeacherController {
         // 5. Look for teacher_dashboard.html template
         return "teacher_dashboard";
     }
+
+    @GetMapping("/delete/{id}")
+    public String deleteExam(@PathVariable Long id, HttpSession session) {
+        // Security Check
+        User loggedInUser = (User) session.getAttribute("user");
+        if (loggedInUser == null || !"FACULTY".equals(loggedInUser.getRole())) {
+            return "redirect:/user/login";
+        }
+
+        // Delete the exam
+        examRepository.deleteById(id);
+
+        // Redirect back to dashboard
+        return "redirect:/teacher/dashboard";
+    }
+
+    // 1. Show the Edit Form using the correct, existing template
+    @GetMapping("/edit/{id}")
+    public String showEditExamForm(@PathVariable Long id, Model model) {
+        // Find the exam, or fallback to null safely
+        Exam exam = examRepository.findById(id).orElse(null);
+
+        if (exam == null) {
+            return "redirect:/teacher/dashboard?error=ExamNotFound";
+        }
+
+        model.addAttribute("exam", exam);
+        return "create-exam"; // Reuses the template you modified!
+    }
+
+    // 2. Save the Updates (Unified route for handling both inserts and updates)
+    @PostMapping("/save-exam")
+    public String saveExam(@ModelAttribute Exam exam, Model model) {
+        if (exam.getMaxAttempts() != null && exam.getMaxAttempts() < 1) {
+            model.addAttribute("error", "The exam must allow at least 1 attempt!");
+            return "create-exam";
+        }
+
+        // If examId exists, Hibernate automatically runs an UPDATE query
+        // If examId is null, Hibernate runs an INSERT query
+        examRepository.save(exam);
+        return "redirect:/teacher/dashboard";
+    }
+
+
 }

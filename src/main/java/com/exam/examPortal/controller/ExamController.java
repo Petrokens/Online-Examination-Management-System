@@ -47,7 +47,7 @@ public class ExamController {
 
     // --- TEACHER ACTIONS ---
 
-    // 2. SHOW CREATION FORM: The blank page where a teacher builds an exam
+    // 1. SHOW CREATION FORM: The blank page where a teacher builds an exam
     @GetMapping("/create")
     public String showCreateExamForm(Model model) {
         // Put an empty Exam object on the tray so the HTML form has a blueprint
@@ -55,7 +55,7 @@ public class ExamController {
         return "create-exam"; // Looks for create-exam.html
     }
 
-    // 3. CATCH NEW EXAM DATA: When the teacher clicks "Save Exam"
+    // 2. CATCH NEW EXAM DATA: When the teacher clicks "Save Exam"
     @PostMapping("/create")
     public String createExam(@ModelAttribute Exam exam, Model model) {
         if (exam.getMaxAttempts() < 1) {
@@ -69,6 +69,8 @@ public class ExamController {
         // Success! Jump straight back to the dashboard to see the updated list
         return "redirect:/teacher/dashboard";
     }
+
+
 
     // --- STUDENT ACTIONS ---
 

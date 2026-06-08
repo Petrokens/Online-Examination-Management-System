@@ -2,6 +2,8 @@ package com.exam.examPortal.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "exams")
 public class Exam {
@@ -23,6 +25,11 @@ public class Exam {
     // Added from FR-6 in your SRS
     private int passingPercentage;
 
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Question> questions;
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Result> results;
     // --- GETTERS AND SETTERS ---
 
     public Long getExamId() { return examId; }

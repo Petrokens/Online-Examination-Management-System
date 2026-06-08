@@ -3,6 +3,7 @@ package com.exam.examPortal.controller;
 import java.util.List;
 import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.Question;
+import com.exam.examPortal.repository.QuestionRepository;
 import com.exam.examPortal.service.ExamService;
 import com.exam.examPortal.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class QuestionController {
 
     @Autowired
     private QuestionService questionService;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     // 1. SHOW THE FORM (Using your custom repository method!)
     @GetMapping("/add/{examId}")
@@ -51,5 +55,18 @@ public class QuestionController {
 
         // Redirect back to the same form so the teacher can quickly add another
         return "redirect:/question/add/" + examId;
+    }
+    @GetMapping("/question/edit/{questionId}")
+    public String showEditQuestionForm(@PathVariable Long questionId, Model model) {
+        Question question = questionRepository.findById(questionId).orElseThrow();
+        model.addAttribute("question", question);
+        return "edit-question";
+    }
+
+    @PostMapping("/question/update")
+    public String updateQuestion(@ModelAttribute Question question) {
+        questionRepository.save(question);
+        // Redirect back to that specific exam's question list
+        return "redirect:/question/add/" + question.getExam().getExamId();
     }
 }
