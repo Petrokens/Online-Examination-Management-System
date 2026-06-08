@@ -19,6 +19,8 @@ public class User {
 
     private String role; // "STUDENT", "FACULTY", or "ADMIN"
 
+    private String status;
+
     // --- GETTERS AND SETTERS ---
 
     public Long getUserId() { return userId; }
@@ -35,4 +37,7 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

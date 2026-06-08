@@ -57,12 +57,17 @@ public class ExamController {
 
     // 3. CATCH NEW EXAM DATA: When the teacher clicks "Save Exam"
     @PostMapping("/create")
-    public String createExam(@ModelAttribute Exam exam) {
+    public String createExam(@ModelAttribute Exam exam, Model model) {
+        if (exam.getMaxAttempts() < 1) {
+            // Add an error message to show on the page
+            model.addAttribute("error", "The exam must allow at least 1 attempt!");
+            return "create-exam";
+        }
         // Hand the data to the Chef to save in MySQL
         examService.addExam(exam);
 
         // Success! Jump straight back to the dashboard to see the updated list
-        return "redirect:/student/dashboard";
+        return "redirect:/teacher/dashboard";
     }
 
     // --- STUDENT ACTIONS ---

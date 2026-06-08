@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Control Center</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/teacher/dashboard">📝 ExamPortal (Faculty Panel)</a>
+        <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+    </div>
+</nav>
+
+<div class="container mt-5 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Instructor Dashboard</h2>
+            <p class="text-muted mb-0">Review published test materials or draft new operational evaluative contexts.</p>
+        </div>
+        <a href="/exam/create" class="btn btn-primary btn-lg fw-semibold shadow-sm">+ Create New Exam</a>
+    </div>
+
+    <div th:if="${exams == null || exams.isEmpty()}" class="card border-0 shadow-sm p-5 text-center bg-white">
+        <div class="py-4">
+            <h4 class="fw-bold text-secondary">No Examinations Created Yet</h4>
+            <p class="text-muted mb-4">Get started by clicking the "Create New Exam" blueprint engine configuration button above.</p>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${exams != null && !exams.isEmpty()}">
+        <div class="col" th:each="exam : ${exams}">
+            <div class="card h-100 shadow-sm border-0 bg-white">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <h4 class="card-title fw-bold text-dark mb-3" th:text="${exam.examName}">Exam Title</h4>
+                        <hr class="text-muted opacity-25">
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span class="text-secondary font-monospace">⏱️ Duration:</span>
+                                <span class="fw-bold text-dark" th:text="${exam.durationMinutes} + ' Mins'">0 Mins</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span class="text-secondary font-monospace">📊 Max Score:</span>
+                                <span class="fw-bold text-dark" th:text="${exam.totalMarks} + ' Pts'">0 Pts</span>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-secondary font-monospace">🔄 Max Attempts:</span>
+                                <span class="fw-bold text-dark" th:text="${exam.maxAttempts}">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <a th:href="@{/question/add/{id}(id=${exam.examId})}" class="btn btn-outline-success w-100 fw-semibold mt-2">
+                            Manage Questions &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

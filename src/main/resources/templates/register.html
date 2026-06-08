@@ -13,7 +13,7 @@
         <div class="col-md-5">
             <div class="card shadow-sm">
                 <div class="card-body p-5">
-                    <h2 class="text-center mb-4">Student Registration</h2>
+                    <h2 class="text-center mb-4">Create Account</h2>
 
                     <div th:if="${error}" class="alert alert-danger text-center">
                         <span th:text="${error}"></span>
@@ -28,12 +28,29 @@
 
                         <div class="mb-3">
                             <label class="form-label">Email address</label>
-                            <input type="email" th:field="*{email}" class="form-control" required placeholder="student@school.com">
+                            <input type="email"
+                                   th:field="*{email}"
+                                   class="form-control"
+                                   required
+                                   placeholder="john@example.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Account Type</label>
+                            <select th:field="*{role}" class="form-select" required>
+                                <option value="">Select Role</option>
+                                <option value="STUDENT">Student</option>
+                                <option value="FACULTY">Teacher / Faculty</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="password" th:field="*{password}" class="form-control" required placeholder="Create a strong password">
+                            <input type="password"
+                                   th:field="*{password}"
+                                   class="form-control"
+                                   required
+                                   placeholder="Create a strong password">
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mt-4">Create Account</button>
