@@ -58,8 +58,16 @@ public class ResultController {
     }
 
     @GetMapping("/view/{id}")
-    public String viewResult(@PathVariable Long id, Model model) {
+    public String viewResult(@PathVariable Long id, HttpSession session, Model model) {
+        // 1. Get the result AND the logged-in teacher
         Result result = resultRepository.findById(id).orElse(null);
+        User loggedInTeacher = (User) session.getAttribute("user");
+
+        // 2. Security Guard: Does the result exist AND does it belong to this teacher?
+        if (result == null || !result.getTeacher().equals(loggedInTeacher)) {
+            return "redirect:/teacher/dashboard?error=Unauthorized";
+        }
+
         model.addAttribute("result", result);
         return "result";
     }

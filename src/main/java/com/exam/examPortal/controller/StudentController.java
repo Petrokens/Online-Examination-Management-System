@@ -28,7 +28,7 @@ public class StudentController {
 
     @GetMapping("/dashboard")
     public String studentDashboard(
-            @RequestParam(name = "status", required = false) String status, // <--- ADD THIS PARAMETER
+            @RequestParam(name = "status", required = false) String status,
             HttpSession session,
             Model model) {
 
@@ -37,11 +37,13 @@ public class StudentController {
             return "redirect:/login";
         }
 
-        // 1. Fetch data
+        // 1. Fetch results (keep as is)
         var results = resultRepository.findByUser(user, Sort.by(Sort.Direction.DESC, "submissionTime"));
-        var exams = examRepository.findAll();
 
-        // 2. Calculate map
+        // --- SECURITY CHANGE: Fetch ONLY exams the student is invited to ---
+        var exams = examRepository.findByAllowedStudentsContaining(user);
+
+        // 2. Calculate map (keep as is)
         java.util.Map<Long, Long> attemptCountMap = results.stream()
                 .filter(r -> r.getExam() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
@@ -49,15 +51,15 @@ public class StudentController {
                         java.util.stream.Collectors.counting()
                 ));
 
-        // 3. Add to model
         model.addAttribute("user", user);
-        model.addAttribute("exams", exams);
+        model.addAttribute("exams", exams); // Now this only contains relevant exams
         model.addAttribute("results", results);
         model.addAttribute("attemptCounts", attemptCountMap);
-        model.addAttribute("status", status); // <--- ADD THIS LINE TO PASS IT TO THE HTML
+        model.addAttribute("status", status);
 
         return "student_dashboard";
     }
+
     @GetMapping("/results/all")
     public String viewAllResults(
             @RequestParam(defaultValue = "0") int page,

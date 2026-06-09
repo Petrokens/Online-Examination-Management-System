@@ -21,6 +21,9 @@ public class Result {
     @JoinColumn(name = "exam_id", nullable = false)
     private Exam exam;
 
+    @ManyToOne
+    private User teacher;
+
     private int score;
     private int percentage;
     private String status; // We will store "PASS" or "FAIL"
@@ -50,4 +53,7 @@ public class Result {
 
     public LocalDateTime getSubmissionTime() { return submissionTime; }
     public void setSubmissionTime(LocalDateTime submissionTime) { this.submissionTime = submissionTime; }
+
+    public User getTeacher() { return teacher; }
+    public void setTeacher(User teacher) { this.teacher = teacher; }
 }

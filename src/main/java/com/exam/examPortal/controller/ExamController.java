@@ -52,6 +52,9 @@ public class ExamController {
     public String showCreateExamForm(Model model) {
         // Put an empty Exam object on the tray so the HTML form has a blueprint
         model.addAttribute("exam", new Exam());
+        // Add this line to fetch all students so the checklist has data
+        // Assuming you have a userService that can return all students
+        model.addAttribute("allStudents", userService.getAllStudents());
         return "create-exam"; // Looks for create-exam.html
     }
 
@@ -67,6 +70,32 @@ public class ExamController {
         examService.addExam(exam);
 
         // Success! Jump straight back to the dashboard to see the updated list
+        return "redirect:/teacher/dashboard";
+    }
+
+    @PostMapping("/save-exam")
+    public String saveExam(@ModelAttribute Exam exam, HttpSession session, Model model) {
+        // 1. Get the current logged-in teacher from the session
+        User loggedInTeacher = (User) session.getAttribute("user");
+
+        // 2. SAFETY CHECK: Ensure the user is actually a faculty member
+        if (loggedInTeacher == null || !"FACULTY".equals(loggedInTeacher.getRole())) {
+            return "redirect:/user/login?error=Unauthorized";
+        }
+
+        // 3. THE MISSING LINK: Stamp the teacher onto the exam object!
+        exam.setTeacher(loggedInTeacher);
+
+        // 4. Validate
+        if (exam.getMaxAttempts() != null && exam.getMaxAttempts() < 1) {
+            model.addAttribute("error", "The exam must allow at least 1 attempt!");
+            return "create-exam";
+        }
+
+        // 5. Now save. Because we set the teacher in step 3,
+        // the teacher_id will no longer be NULL.
+        examRepository.save(exam);
+
         return "redirect:/teacher/dashboard";
     }
 
@@ -136,6 +165,7 @@ public class ExamController {
             result.setScore(0);   // Hardcode zero percent
             result.setStatus("FAIL");      // Or "DISQUALIFIED" if your DB column supports it
             result.setSubmissionTime(java.time.LocalDateTime.now());
+            result.setTeacher(exam.getTeacher());
 
             // Directly save to the repository, bypassing the service calculations
             resultRepository.save(result);

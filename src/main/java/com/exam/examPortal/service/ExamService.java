@@ -1,6 +1,7 @@
 package com.exam.examPortal.service;
 
 import com.exam.examPortal.entity.Exam;
+import com.exam.examPortal.entity.User;
 import com.exam.examPortal.repository.ExamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,5 +34,13 @@ public class ExamService {
     // 4. DELETE (NEW!): The Manager tells the worker to delete a specific exam
     public void deleteExam(Long examId) {
         examRepository.deleteById(examId);
+    }
+
+    public List<Exam> getExamsForLoggedInTeacher(User teacher) {
+        return examRepository.findByTeacher(teacher);
+    }
+
+    public Exam save(Exam exam) {
+        return examRepository.save(exam);
     }
 }

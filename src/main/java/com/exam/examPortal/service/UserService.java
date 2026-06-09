@@ -120,4 +120,11 @@ public class UserService {
                 .filter(u -> "ACTIVE".equals(u.getStatus()))
                 .collect(Collectors.toList());
     }
+
+    public List<User> getAllStudents() {
+        // This filters your user list to only return students
+        return userRepository.findAll().stream()
+                .filter(u -> "STUDENT".equals(u.getRole()))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

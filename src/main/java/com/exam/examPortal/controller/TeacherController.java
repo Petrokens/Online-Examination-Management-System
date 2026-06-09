@@ -3,6 +3,7 @@ package com.exam.examPortal.controller;
 import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.User;
 import com.exam.examPortal.repository.ExamRepository;
+import com.exam.examPortal.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,9 @@ public class TeacherController {
     @Autowired
     private ExamRepository examRepository;
 
+    @Autowired
+    private UserService userService;
+
     // TEACHER DASHBOARD: View all created exams
     @GetMapping("/dashboard")
     public String showTeacherDashboard(HttpSession session, Model model) {
@@ -29,11 +33,10 @@ public class TeacherController {
             return "redirect:/user/login?error=AccessDenied";
         }
 
-        // 3. Fetch all exams from the database
-        List<Exam> examsList = examRepository.findAll();
-
-        // 4. Send the list of exams to the Thymeleaf HTML template
-        model.addAttribute("exams", examsList);
+        // --- CHANGED FROM .findAll() TO .findByTeacher() ---
+        // This ensures they only see exams with their "stamp" on them
+        List<Exam> myExams = examRepository.findByTeacher(loggedInUser);
+        model.addAttribute("exams", myExams);
 
         // 5. Look for teacher_dashboard.html template
         return "teacher_dashboard";
@@ -43,10 +46,12 @@ public class TeacherController {
     public String deleteExam(@PathVariable Long id, HttpSession session) {
         // Security Check
         User loggedInUser = (User) session.getAttribute("user");
-        if (loggedInUser == null || !"FACULTY".equals(loggedInUser.getRole())) {
-            return "redirect:/user/login";
-        }
+        Exam exam = examRepository.findById(id).orElse(null);
 
+        // Security Guard: Does the exam exist AND does it belong to this teacher?
+        if (exam == null || !exam.getTeacher().equals(loggedInUser)) {
+            return "redirect:/teacher/dashboard?error=Unauthorized";
+        }
         // Delete the exam
         examRepository.deleteById(id);
 
@@ -65,6 +70,11 @@ public class TeacherController {
         }
 
         model.addAttribute("exam", exam);
+
+        // --- ADD THIS LINE ---
+        // You must fetch the students again so the checklist populates
+        model.addAttribute("allStudents", userService.getAllStudents());
+
         return "create-exam"; // Reuses the template you modified!
     }
 
@@ -79,6 +89,30 @@ public class TeacherController {
         // If examId exists, Hibernate automatically runs an UPDATE query
         // If examId is null, Hibernate runs an INSERT query
         examRepository.save(exam);
+        return "redirect:/teacher/dashboard";
+    }
+
+    @PostMapping("/edit-exam/{id}")
+    public String updateExam(@PathVariable Long id, @ModelAttribute Exam updatedExam, HttpSession session) {
+        // 1. Fetch the existing exam from the DB so we have the 'teacher' object intact
+        Exam existingExam = examRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid exam ID:" + id));
+
+        // 2. Update the fields that came from the form (manually copying them)
+        existingExam.setExamName(updatedExam.getExamName());
+        existingExam.setDurationMinutes(updatedExam.getDurationMinutes());
+        existingExam.setTotalMarks(updatedExam.getTotalMarks());
+        existingExam.setPassingPercentage(updatedExam.getPassingPercentage());
+        existingExam.setMaxAttempts(updatedExam.getMaxAttempts());
+
+        // 3. Update the Whitelist (the checkbox list)
+        existingExam.setAllowedStudents(updatedExam.getAllowedStudents());
+
+        // 4. IMPORTANT: We do NOT call setTeacher() here because
+        // existingExam already has the correct teacher linked from the database!
+
+        // 5. Save the merged object
+        examRepository.save(existingExam);
+
         return "redirect:/teacher/dashboard";
     }
 
