@@ -1,18 +1,50 @@
 package com.exam.examPortal.service;
 
+import com.exam.examPortal.entity.AuditLog;
 import com.exam.examPortal.entity.User;
+import com.exam.examPortal.repository.AuditLogRepository;
 import com.exam.examPortal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
+    // This stores your history
+    private List<String> auditLogs = new ArrayList<>();
+
+    public void logAction(String action) {
+        // 1. Create the AuditLog object (the 'log' variable you were missing)
+        AuditLog log = new AuditLog();
+
+        // 2. Set the data
+        String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm, dd-MM-yyyy"));
+
+        log.setAction(action + " at " + timestamp);
+
+        // 3. Save the actual object to the database
+        auditLogRepository.save(log);
+    }
+
+    public Page<AuditLog> getAuditLogs(Pageable pageable) {
+        return auditLogRepository.findAll(pageable);
+    }
 
     // 1. REGISTER: Create a new account
     public User registerUser(User newUser) {
@@ -68,5 +100,24 @@ public class UserService {
     // 6. DELETE: Used to reject/delete a pending request
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    // In UserService.java
+    public long countUsersByRoleAndStatus(String role, String status) {
+        return userRepository.findAll().stream()
+                .filter(u -> role.equals(u.getRole()) && status.equals(u.getStatus()))
+                .count();
+    }
+
+    public List<User> getPendingUsers() {
+        return userRepository.findAll().stream()
+                .filter(u -> "PENDING".equals(u.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    public List<User> getActiveUsers() {
+        return userRepository.findAll().stream()
+                .filter(u -> "ACTIVE".equals(u.getStatus()))
+                .collect(Collectors.toList());
     }
 }
