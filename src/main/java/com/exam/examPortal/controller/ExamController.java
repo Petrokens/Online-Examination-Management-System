@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import jakarta.servlet.http.HttpSession;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -123,6 +125,7 @@ public class ExamController {
         // Set the session lock so they can't leave
         session.setAttribute("isExamInProgress", true);
         session.setAttribute("currentExamId", id);
+        session.setAttribute("examStartTime", LocalDateTime.now());
 
         return "take-exam";
     }
@@ -157,6 +160,10 @@ public class ExamController {
         if (examId != null && user != null) {
             Exam exam = examRepository.findById(examId).orElse(null);
 
+            LocalDateTime startTime = (LocalDateTime) session.getAttribute("examStartTime");
+// If the session expired (startTime is null), set duration to 0 or "Unknown"
+            long duration = (startTime != null) ? java.time.Duration.between(startTime, LocalDateTime.now()).getSeconds() : 0;
+
             // Create a direct failing result instead of calculating their empty answers
             Result result = new Result();
             result.setUser(user);
@@ -166,7 +173,7 @@ public class ExamController {
             result.setStatus("FAIL");      // Or "DISQUALIFIED" if your DB column supports it
             result.setSubmissionTime(java.time.LocalDateTime.now());
             result.setTeacher(exam.getTeacher());
-
+            result.setTimeTakenSeconds(duration);
             // Directly save to the repository, bypassing the service calculations
             resultRepository.save(result);
 

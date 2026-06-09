@@ -18,7 +18,9 @@
 <div class="container mt-5 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Instructor Dashboard</h2>
+            <h2 class="fw-bold text-dark mb-1">
+                Welcome, <span th:text="${teacher.name}">Instructor</span>!
+            </h2>
             <p class="text-muted mb-0">Review published test materials or draft new operational evaluative contexts.</p>
         </div>
         <a href="/exam/create" class="btn btn-primary btn-lg fw-semibold shadow-sm">+ Create New Exam</a>
@@ -85,6 +87,11 @@
                                 data-bs-target="#deleteModal">
                             Delete Exam
                         </button>
+
+                        <a th:href="@{/teacher/results(examId=${exam.examId})}"
+                           class="btn btn-outline-info w-100 fw-semibold mt-2">
+                            📊 View Full Report
+                        </a>
                     </div>
 
                 </div>

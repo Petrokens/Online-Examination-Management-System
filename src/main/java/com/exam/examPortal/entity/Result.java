@@ -31,6 +31,8 @@ public class Result {
     // This logs the exact date and time they finished
     private LocalDateTime submissionTime;
 
+    private long timeTakenSeconds;
+
     // --- GETTERS AND SETTERS ---
 
     public Long getResultId() { return resultId; }
@@ -56,4 +58,7 @@ public class Result {
 
     public User getTeacher() { return teacher; }
     public void setTeacher(User teacher) { this.teacher = teacher; }
+
+    public long getTimeTakenSeconds() { return timeTakenSeconds; }
+    public void setTimeTakenSeconds(long timeTakenSeconds) { this.timeTakenSeconds = timeTakenSeconds; }
 }

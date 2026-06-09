@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Results Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/teacher/dashboard">← Back to Dashboard</a>
+        <span class="navbar-text">Exam Performance Report</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card shadow-sm p-4">
+        <h3 class="mb-4">Student Attempt Records</h3>
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Student Name</th>
+                <th>Exam Title</th>
+                <th>Score / %</th>
+                <th>Submitted On</th>
+                <th>Time Taken</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${resultPage.content}">
+                <td th:text="${r.user.name}">John Doe</td>
+                <td th:text="${r.exam.examName}">Java Programming</td>
+                <td>
+                    <span th:text="${r.score}">0</span> /
+                    <span class="badge bg-info text-dark" th:text="${r.percentage + '%'}">0%</span>
+                </td>
+                <td th:text="${#temporals.format(r.submissionTime, 'dd MMM, HH:mm')}"></td>
+                <td>
+                    <span th:text="${r.timeTakenSeconds / 60 + 'm ' + r.timeTakenSeconds % 60 + 's'}">0m 0s</span>
+                </td>
+                <td>
+                        <span th:classappend="${r.status == 'PASS' ? 'text-success' : 'text-danger'}"
+                              class="fw-bold" th:text="${r.status}">PASS</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <nav th:if="${resultPage.totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${resultPage.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/teacher/results(page=${currentPage - 1})}">Previous</a>
+                </li>
+                <li class="page-item" th:classappend="${resultPage.number == i} ? 'active'"
+                    th:each="i : ${#numbers.sequence(0, resultPage.totalPages - 1)}">
+                    <a class="page-link" th:href="@{/teacher/results(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${resultPage.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/teacher/results(page=${currentPage + 1})}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+</body>
+</html>

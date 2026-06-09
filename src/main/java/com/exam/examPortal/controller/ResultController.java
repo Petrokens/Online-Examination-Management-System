@@ -1,5 +1,6 @@
 package com.exam.examPortal.controller;
 
+import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.Result;
 import com.exam.examPortal.entity.StudentAnswer;
 import com.exam.examPortal.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -45,11 +47,25 @@ public class ResultController {
                 .filter(a -> a.getQuestion() != null && a.getQuestion().getExam().getExamId().equals(examId))
                 .toList();
 
-        System.out.println("DEBUG: Filtered " + examAnswers.size() + " answers for exam " + examId);
+        // 3. --- FIX: FETCH THE EXAM OBJECT FIRST ---
+        Exam exam = examRepository.findById(examId).orElse(null);
+
+        // 3. Get the start time we saved in Step 2
+        LocalDateTime startTime = (LocalDateTime) session.getAttribute("examStartTime");
+        LocalDateTime endTime = LocalDateTime.now();
+
+        // 4. Calculate the difference
+        long duration = java.time.Duration.between(startTime, endTime).getSeconds();
 
         Result result = new Result();
         result.setUser(user);
         result.setExam(examRepository.findById(examId).orElse(null));
+        result.setSubmissionTime(endTime);
+        result.setTimeTakenSeconds(duration); // NOW we have the length!
+
+        if (exam != null) {
+            result.setTeacher(exam.getTeacher());
+        }
 
         // 3. Now the list is NOT empty, the Grading Engine will run!
         resultService.calculateAndSaveResult(result, examAnswers);
@@ -63,8 +79,20 @@ public class ResultController {
         Result result = resultRepository.findById(id).orElse(null);
         User loggedInTeacher = (User) session.getAttribute("user");
 
-        // 2. Security Guard: Does the result exist AND does it belong to this teacher?
-        if (result == null || !result.getTeacher().equals(loggedInTeacher)) {
+        // SAFETY FIRST:
+        // 1. Check if result exists
+        // 2. Check if result.getTeacher() is NOT null before calling .equals()
+        if (result == null) {
+            return "redirect:/teacher/dashboard?error=NotFound";
+        }
+
+        // This logic handles the null teacher safely
+        boolean isOwner = (result.getTeacher() != null && result.getTeacher().equals(loggedInTeacher));
+
+        // Also allow the STUDENT who took the exam to view their own result
+        boolean isStudent = (result.getUser() != null && result.getUser().equals(loggedInTeacher));
+
+        if (!isOwner && !isStudent) {
             return "redirect:/teacher/dashboard?error=Unauthorized";
         }
 

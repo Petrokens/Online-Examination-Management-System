@@ -19,4 +19,7 @@ public interface ResultRepository extends JpaRepository<Result, Long> {
     Page<Result> findByUser(User user, Pageable pageable);
     List<Result> findByUser(User user, Sort sort);
     long countByUserAndExam(User user, Exam exam);
+    // Use this to filter by both the Teacher (for security) AND the specific Exam
+    //Page<Result> findByExamAndTeacher(Exam exam, User teacher, Pageable pageable);
+    Page<Result> findByExamAndTeacherAndUserRole(Exam exam, User teacher, String role, Pageable pageable);
 }
