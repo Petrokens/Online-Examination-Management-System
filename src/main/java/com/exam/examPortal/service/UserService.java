@@ -5,6 +5,7 @@ import com.exam.examPortal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,22 +17,22 @@ public class UserService {
     // 1. REGISTER: Create a new account
     public User registerUser(User newUser) {
 
-        // --- THE BRAIN (Business Logic) ---
-
-        // Check if a user with this email already exists
+        // 1. Check if email exists
         Optional<User> existingUser = userRepository.findByEmail(newUser.getEmail());
         if (existingUser.isPresent()) {
-            // Email is already taken! Return null so the Controller knows it failed.
             return null;
         }
 
-        // Security Check: Force the role to "STUDENT" by default.
-        // This prevents hackers from sending a request saying their role is "ADMIN".
-        if (newUser.getRole() == null || newUser.getRole().isEmpty()) {
-            newUser.setRole("STUDENT");
+        // 2. Set Status based on Role
+        // This makes the registration decision "Atomic" –
+        // it happens the moment the data is created.
+        if ("FACULTY".equals(newUser.getRole())) {
+            newUser.setStatus("PENDING"); // Lock out teachers
+        } else {
+            newUser.setStatus("ACTIVE");  // Let students in
         }
 
-        // --- THE TRIGGER ---
+        // 3. Save and return
         return userRepository.save(newUser);
     }
 
@@ -48,5 +49,24 @@ public class UserService {
 
         // If the email doesn't exist, or the password was wrong, return null.
         return null;
+    }
+    // 3. GET ALL: Used for the Admin Panel list
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // 4. GET BY ID: Used to find a specific user to promote/approve them
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    // 5. UPDATE/SAVE: Used to change the status (PENDING -> ACTIVE)
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    // 6. DELETE: Used to reject/delete a pending request
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

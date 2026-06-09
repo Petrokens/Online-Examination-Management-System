@@ -15,6 +15,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+
     // --- REGISTRATION ---
 
     // 1. SHOW THE PAGE: When the user types localhost:8080/user/register in their browser
@@ -88,5 +89,22 @@ public class UserController {
         } else {
             return "redirect:/student/dashboard";
         }
+    }
+    @GetMapping("/admin/approve/{id}")
+    public String approveTeacher(@PathVariable Long id) {
+        // 1. Get the user from the main User table
+        User user = userService.getUserById(id);
+
+        // 2. Check if they are actually a Faculty member waiting for approval
+        if (user != null && "FACULTY".equals(user.getRole()) && "PENDING".equals(user.getStatus())) {
+
+            // 3. Just flip the switch!
+            user.setStatus("ACTIVE");
+
+            // 4. Save the update
+            userService.saveUser(user);
+        }
+
+        return "redirect:/admin/dashboard?success=approved";
     }
 }
