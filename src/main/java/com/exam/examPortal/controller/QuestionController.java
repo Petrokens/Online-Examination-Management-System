@@ -40,6 +40,8 @@ public class QuestionController {
         model.addAttribute("question", question);
         model.addAttribute("questionNumber", nextQuestionNumber);
 
+        model.addAttribute("questions", existingQuestions);
+
         return "add-question";
     }
 
@@ -56,14 +58,25 @@ public class QuestionController {
         // Redirect back to the same form so the teacher can quickly add another
         return "redirect:/question/add/" + examId;
     }
-    @GetMapping("/question/edit/{questionId}")
+    @GetMapping("/edit/{questionId}")
     public String showEditQuestionForm(@PathVariable Long questionId, Model model) {
+
         Question question = questionRepository.findById(questionId).orElseThrow();
+
+        Exam exam = question.getExam();
+
+        List<Question> existingQuestions =
+                questionService.getQuestionsByExamId(exam.getExamId());
+
         model.addAttribute("question", question);
-        return "edit-question";
+        model.addAttribute("exam", exam);
+        model.addAttribute("questions", existingQuestions);
+        model.addAttribute("questionNumber", existingQuestions.size());
+
+        return "add-question";
     }
 
-    @PostMapping("/question/update")
+    @PostMapping("/update")
     public String updateQuestion(@ModelAttribute Question question) {
         questionRepository.save(question);
         // Redirect back to that specific exam's question list

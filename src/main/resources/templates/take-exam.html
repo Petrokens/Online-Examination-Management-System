@@ -242,15 +242,28 @@
 
     // --- 4. ENGINE & NAVIGATION ---
     function startTimer() {
-        const timerDisplay = document.getElementById('timerDisplay');
-        timerInterval = setInterval(function() {
-            if (timeRemainingSeconds <= 0) { clearInterval(timerInterval); document.getElementById('examForm').submit(); return; }
-            let m = Math.floor((timeRemainingSeconds % 3600) / 60);
-            let s = timeRemainingSeconds % 60;
-            timerDisplay.textContent = `Time Remaining: ${m < 10 ? "0"+m : m}:${s < 10 ? "0"+s : s}`;
-            timeRemainingSeconds--;
-        }, 1000);
-    }
+    const timerDisplay = document.getElementById('timerDisplay');
+    timerInterval = setInterval(function() {
+        if (timeRemainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('examForm').submit();
+            return;
+        }
+
+        // Calculate Hours and Minutes
+        let hours = Math.floor(timeRemainingSeconds / 3600);
+        let minutes = Math.floor((timeRemainingSeconds % 3600) / 60);
+        let seconds = timeRemainingSeconds % 60;
+
+        // Format: Show hours only if > 0, otherwise just MM:SS
+        let display = hours > 0
+            ? `${hours}h ${minutes}m ${seconds}s`
+            : `${minutes < 10 ? "0"+minutes : minutes}:${seconds < 10 ? "0"+seconds : seconds}`;
+
+        timerDisplay.textContent = `Time Remaining: ${display}`;
+        timeRemainingSeconds--;
+    }, 1000);
+}
 
     function showQuestion(index) {
         document.querySelectorAll('.question-card').forEach(card => card.classList.remove('active'));

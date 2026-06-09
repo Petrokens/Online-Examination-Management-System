@@ -42,7 +42,10 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-1 small">
                                 <span class="text-secondary font-monospace">⏱️ Duration:</span>
-                                <span class="fw-bold text-dark" th:text="${exam.durationMinutes} + ' Mins'">0 Mins</span>
+                                <span class="fw-bold text-dark"
+                                      th:text="${exam.durationMinutes >= 60 ? (exam.durationMinutes / 60) + 'h ' + (exam.durationMinutes % 60) + 'm' : exam.durationMinutes + ' Mins'}">
+                                    0 Mins
+                                    </span>
                             </div>
                             <div class="d-flex justify-content-between mb-1 small">
                                 <span class="text-secondary font-monospace">📊 Max Score:</span>
@@ -55,27 +58,35 @@
                         </div>
                     </div>
 
-                    <div class="card h-100 shadow-sm border-0 bg-white">
-                        <div class="card-body p-4 d-flex flex-column justify-content-between">
-                            <div>
-                                <a th:href="@{/question/add/{id}(id=${exam.examId})}" class="btn btn-outline-success w-100 fw-semibold mt-2">
-                                    Add Questions &rarr;
+                    <div>
+                        <div class="row g-2 mt-2">
+
+                            <div class="col-6">
+                                <a th:href="@{/question/add/{id}(id=${exam.examId})}"
+                                   class="btn btn-outline-success w-100 fw-semibold">
+                                    Manage Questions
                                 </a>
-                                <a th:href="@{/teacher/edit/{id}(id=${exam.examId})}"
-                                   class="btn btn-outline-primary w-100 fw-semibold mt-2">
-                                    Edit Settings
-                                </a>
-                                <button type="button"
-                                        class="btn btn-outline-danger w-100 fw-semibold mt-2"
-                                        th:data-exam-id="${exam.examId}"
-                                        onclick="prepareDelete(this.getAttribute('data-exam-id'))"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal">
-                                    Delete Exam
-                                </button>
                             </div>
+
+                            <div class="col-6">
+                                <a th:href="@{/teacher/edit/{id}(id=${exam.examId})}"
+                                   class="btn btn-outline-primary w-100 fw-semibold">
+                                    ✏️ Edit Exam  Settings
+                                </a>
+                            </div>
+
                         </div>
+
+                        <button type="button"
+                                class="btn btn-outline-danger w-100 fw-semibold mt-2"
+                                th:data-exam-id="${exam.examId}"
+                                onclick="prepareDelete(this.getAttribute('data-exam-id'))"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal">
+                            Delete Exam
+                        </button>
                     </div>
+
                 </div>
             </div>
         </div>

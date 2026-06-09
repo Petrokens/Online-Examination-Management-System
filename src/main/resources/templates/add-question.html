@@ -16,8 +16,10 @@
 </nav>
 
 <div class="container mt-5 mb-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+    <div class="row">
+
+        <!-- Left Side: Add Question Form -->
+        <div class="col-lg-7">
 
             <div class="alert alert-success shadow-sm mb-4">
                 <h5 class="alert-heading mb-1">Adding questions to:</h5>
@@ -27,10 +29,17 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4 p-md-5">
                     <h3 class="fw-bold mb-4">
-                        Question #<span th:text="${questionNumber}">1</span>
+                        <span th:if="${question.questionId != null}">✏️ Edit Question Details</span>
+
+                        <span th:if="${question.questionId == null}">
+        Question #<span th:text="${questions != null ? #lists.size(questions) + 1 : 1}">1</span>
+    </span>
                     </h3>
 
                     <form th:action="@{/question/add/{id}(id=${exam.examId})}" th:object="${question}" method="post">
+                        <input type="hidden" th:field="*{questionId}">
+                        <input type="hidden" th:field="*{exam.examId}">
+
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Question Prompt</label>
@@ -81,12 +90,56 @@
                         </div>
 
                     </form>
-
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+
+        </div> <!-- End Left Column -->
+                    <!-- Right Side: Existing Questions -->
+                    <div class="col-lg-5">
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+
+                                <h4 class="fw-bold mb-3">
+                                    Existing Questions
+                                </h4>
+
+                                <p class="text-muted">
+                                    Total Questions:
+                                    <span th:text="${#lists.size(questions)}">0</span>
+                                </p>
+
+                                <div th:each="q : ${questions}"
+                                     class="border rounded p-3 mb-3">
+
+                                    <div class="fw-semibold mb-3"
+                                         th:text="${q.questionText}">
+                                        Question Text
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+
+                                        <a th:href="@{/question/edit/{id}(id=${q.questionId})}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            ✏️ Edit
+                                        </a>
+
+                                        <a th:href="@{/question/delete/{id}(id=${q.questionId})}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Delete this question?')">
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
 
 </body>
 </html>
