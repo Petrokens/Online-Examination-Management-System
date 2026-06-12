@@ -3,16 +3,14 @@ import com.exam.examPortal.entity.AuditLog;
 import com.exam.examPortal.entity.User;
 import com.exam.examPortal.repository.AuditLogRepository;
 import com.exam.examPortal.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,39 +30,36 @@ public class AdminController {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
-    // This handles the request to view the dashboard
     @GetMapping("/dashboard")
-    public String viewAdminDashboard(Model model) {
-        List<User> allUsers = userService.getAllUsers();
-        if (allUsers != null) {
-            allUsers.removeIf(u -> u == null);
+    public String viewAdminDashboard(HttpSession session, Model model) {
+        // 1. Security Check: Is the user logged in and an ADMIN?
+        User user = (User) session.getAttribute("user");
+        if (user == null || !"ADMIN".equals(user.getRole())) {
+            return "redirect:/admin/login?error=Unauthorized";
         }
 
-        // Calculate statistics
+        // 2. Fetch data (from your original viewAdminDashboard logic)
+        List<User> allUsers = userService.getAllUsers();
         long activeTeachers = allUsers.stream().filter(u -> "FACULTY".equals(u.getRole()) && "ACTIVE".equals(u.getStatus())).count();
         long totalStudents = allUsers.stream().filter(u -> "STUDENT".equals(u.getRole())).count();
         long pendingCount = userService.countUsersByRoleAndStatus("FACULTY", "PENDING");
 
+        // 3. Add to model
+        model.addAttribute("admin", user); // Pass the admin object
         model.addAttribute("studentCount", totalStudents);
         model.addAttribute("facultyCount", activeTeachers);
-        //model.addAttribute("adminCount", 1); // Assuming 1 admin for now
-
         model.addAttribute("pendingCount", pendingCount);
         model.addAttribute("auditLogs", userService.getAuditLogs(PageRequest.of(0, 5, Sort.by("id").descending())).getContent());
 
-        // NEW: Add this to show an alert banner if there is work to do
+        // Add banner if needed
         if (pendingCount > 0) {
-            model.addAttribute("alertMessage", "Attention: You have " + pendingCount + " pending faculty registrations waiting for review.");
+            model.addAttribute("alertMessage", "Attention: You have " + pendingCount + " pending faculty registrations.");
         }
 
-        // Pass data to view
         model.addAttribute("pendingUsers", allUsers.stream().filter(u -> "PENDING".equals(u.getStatus())).collect(Collectors.toList()));
         model.addAttribute("activeUsers", allUsers.stream().filter(u -> "ACTIVE".equals(u.getStatus())).collect(Collectors.toList()));
-        model.addAttribute("activeTeachersCount", activeTeachers);
-        model.addAttribute("totalStudentsCount", totalStudents);
-        model.addAttribute("pendingCount", pendingCount);
 
-        return "admin_panel"; // This tells Spring to look for admin_panel.html
+        return "admin_panel";
     }
 
     @GetMapping("/history")
@@ -108,4 +103,25 @@ public class AdminController {
         // Redirect back to dashboard with a success message
         return "redirect:/admin/dashboard?success=rejected";
     }
+    // Add these to AdminController.java
+    @GetMapping("/login")
+    public String showAdminLoginForm() {
+        return "admin_login";
+    }
+
+    @PostMapping("/login")
+    public String adminLogin(@RequestParam String email,
+                             @RequestParam String password,
+                             HttpSession session,
+                             Model model) {
+        User user = userService.loginUser(email, password);
+        if (user != null && "ADMIN".equals(user.getRole())) {
+            session.setAttribute("user", user);
+            return "redirect:/admin/dashboard";
+        }
+        model.addAttribute("error", "Invalid Admin credentials.");
+        return "admin_login";
+    }
+
+
 }

@@ -127,4 +127,10 @@ public class UserService {
                 .filter(u -> "STUDENT".equals(u.getRole()))
                 .collect(java.util.stream.Collectors.toList());
     }
+
+    // Inside UserService.java
+    public List<User> getAdmins() {
+        // Assuming you have a UserRepository method: findByRole(String role)
+        return userRepository.findByRole("ADMIN");
+    }
 }

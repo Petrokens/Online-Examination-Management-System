@@ -117,4 +117,5 @@ public class UserController {
 
         return "redirect:/admin/dashboard?success=approved";
     }
+
 }
