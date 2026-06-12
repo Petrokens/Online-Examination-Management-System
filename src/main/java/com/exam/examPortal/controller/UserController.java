@@ -90,6 +90,16 @@ public class UserController {
             return "redirect:/student/dashboard";
         }
     }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        // 1. Kill the session
+        session.invalidate();
+
+        // 2. Redirect to the login page with a success message
+        return "redirect:/user/login?message=You have been logged out successfully.";
+    }
+
     @GetMapping("/admin/approve/{id}")
     public String approveTeacher(@PathVariable Long id) {
         // 1. Get the user from the main User table
