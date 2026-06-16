@@ -14,5 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // to find a user by their email address!
     Optional<User> findByEmail(String email);
     List<User> findByRole(String role);
+    // Inside UserRepository.java
+    long countByRegistrationDateBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
 
 }

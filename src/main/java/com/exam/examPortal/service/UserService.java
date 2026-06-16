@@ -4,6 +4,7 @@ import com.exam.examPortal.entity.AuditLog;
 import com.exam.examPortal.entity.User;
 import com.exam.examPortal.repository.AuditLogRepository;
 import com.exam.examPortal.repository.UserRepository;
+import com.exam.examPortal.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,9 @@ public class UserService {
 
     @Autowired
     private AuditLogRepository auditLogRepository;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder; // Add this line
@@ -68,7 +74,7 @@ public class UserService {
         } else {
             newUser.setStatus("ACTIVE");
         }
-
+        newUser.setRegistrationDate(java.time.LocalDateTime.now());
         return userRepository.save(newUser);
     }
 
@@ -105,6 +111,44 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
+    // Add this to UserService.java
+    public List<Integer> getRegistrationTrend() {
+        List<Integer> trend = new ArrayList<>();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        // Loop for the last 5 days
+        for (int i = 4; i >= 0; i--) {
+            java.time.LocalDateTime startOfDay = now.minusDays(i).toLocalDate().atStartOfDay();
+            java.time.LocalDateTime endOfDay = now.minusDays(i).toLocalDate().atTime(23, 59, 59);
+
+            // Count users created in this range
+            // Note: Ensure you have a 'countByRegistrationDateBetween' method in your UserRepository
+            long count = userRepository.countByRegistrationDateBetween(startOfDay, endOfDay);
+            trend.add((int) count);
+        }
+        return trend;
+    }
+
+    // 1. Centralized Token Extractor
+    private String getTokenFromRequest(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if ("accessToken".equals(c.getName())) return c.getValue();
+            }
+        }
+        return null;
+    }
+
+    // 2. Centralized Authentication Fetcher
+    public User getAuthenticatedUser(HttpServletRequest request) {
+        String token = getTokenFromRequest(request);
+        if (token == null || !jwtUtils.validateToken(token)) {
+            return null; // Token is missing or invalid
+        }
+        String email = jwtUtils.getEmailFromToken(token);
+        return findByEmail(email);
+    }
+
     // In UserService.java
     public long countUsersByRoleAndStatus(String role, String status) {
         return userRepository.findAll().stream()
@@ -135,5 +179,9 @@ public class UserService {
     public List<User> getAdmins() {
         // Assuming you have a UserRepository method: findByRole(String role)
         return userRepository.findByRole("ADMIN");
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
 }

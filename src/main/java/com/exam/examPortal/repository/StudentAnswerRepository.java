@@ -1,5 +1,6 @@
 package com.exam.examPortal.repository;
 
+import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.Question;
 import com.exam.examPortal.entity.StudentAnswer;
 import com.exam.examPortal.entity.User;
@@ -13,5 +14,5 @@ public interface StudentAnswerRepository extends JpaRepository<StudentAnswer, Lo
     List<StudentAnswer> findByUser(User user);
     // This is a Spring Data JPA query method
     StudentAnswer findByUserAndQuestion(User user, Question question);
-    List<StudentAnswer> findByUserAndExam_ExamId(User user, Long examId);
+    List<StudentAnswer> findByUserAndQuestion_Exam(User user, Exam exam);
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam; // Fixes the Reques
 public interface ResultRepository extends JpaRepository<Result, Long> {
     //List<Result> findByUser(User user);
     Page<Result> findByUser(User user, Pageable pageable);
-    List<Result> findByUser(User user, Sort sort);
+    //List<Result> findByUser(User user, Sort sort);
     long countByUserAndExam(User user, Exam exam);
     // Use this to filter by both the Teacher (for security) AND the specific Exam
     //Page<Result> findByExamAndTeacher(Exam exam, User teacher, Pageable pageable);

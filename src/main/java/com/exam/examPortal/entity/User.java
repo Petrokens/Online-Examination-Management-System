@@ -2,6 +2,8 @@ package com.exam.examPortal.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -20,6 +22,8 @@ public class User {
     private String role; // "STUDENT", "FACULTY", or "ADMIN"
 
     private String status;
+
+    private LocalDateTime registrationDate;
 
     // --- GETTERS AND SETTERS ---
 
@@ -40,6 +44,9 @@ public class User {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(LocalDateTime registrationDate) { this.registrationDate = registrationDate; }
 
     @Override
     public boolean equals(Object o) {

@@ -3,13 +3,16 @@ package com.exam.examPortal.controller;
 import java.util.List;
 import com.exam.examPortal.entity.Exam;
 import com.exam.examPortal.entity.Question;
+import com.exam.examPortal.entity.User;
 import com.exam.examPortal.repository.QuestionRepository;
 import com.exam.examPortal.service.ExamService;
 import com.exam.examPortal.service.QuestionService;
+import com.exam.examPortal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/question")
@@ -24,9 +27,18 @@ public class QuestionController {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private UserService userService;
+
+    private boolean isNotAuthorized(HttpServletRequest request) {
+        User user = userService.getAuthenticatedUser(request);
+        return user == null || !"FACULTY".equals(user.getRole());
+    }
+
     // 1. SHOW THE FORM (Using your custom repository method!)
     @GetMapping("/add/{examId}")
-    public String showAddQuestionForm(@PathVariable("examId") Long examId, Model model) {
+    public String showAddQuestionForm(@PathVariable("examId") Long examId, Model model, HttpServletRequest request) {
+        if (isNotAuthorized(request)) return "redirect:/user/login?error=Unauthorized";
 
         Exam exam = examService.getExamById(examId);
         Question question = new Question();
@@ -47,7 +59,8 @@ public class QuestionController {
 
     // 2. SAVE THE QUESTION TO THE DATABASE
     @PostMapping("/add/{examId}")
-    public String saveQuestion(@PathVariable("examId") Long examId, @ModelAttribute Question question) {
+    public String saveQuestion(@PathVariable("examId") Long examId, @ModelAttribute Question question, HttpServletRequest request) {
+        if (isNotAuthorized(request)) return "redirect:/user/login?error=Unauthorized";
         Exam exam = examService.getExamById(examId);
 
         // Link the question to the exam!
@@ -59,8 +72,8 @@ public class QuestionController {
         return "redirect:/question/add/" + examId;
     }
     @GetMapping("/edit/{questionId}")
-    public String showEditQuestionForm(@PathVariable Long questionId, Model model) {
-
+    public String showEditQuestionForm(@PathVariable Long questionId, Model model, HttpServletRequest request) {
+        if (isNotAuthorized(request)) return "redirect:/user/login?error=Unauthorized";
         Question question = questionRepository.findById(questionId).orElseThrow();
 
         Exam exam = question.getExam();
@@ -77,7 +90,8 @@ public class QuestionController {
     }
 
     @PostMapping("/update")
-    public String updateQuestion(@ModelAttribute Question question) {
+    public String updateQuestion(@ModelAttribute Question question, HttpServletRequest request) {
+        if (isNotAuthorized(request)) return "redirect:/user/login?error=Unauthorized";
         questionRepository.save(question);
         // Redirect back to that specific exam's question list
         return "redirect:/question/add/" + question.getExam().getExamId();
