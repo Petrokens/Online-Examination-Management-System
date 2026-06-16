@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootApplication
 public class ExamPortalApplication {
@@ -13,6 +14,7 @@ public class ExamPortalApplication {
     public static void main(String[] args) {
         SpringApplication.run(ExamPortalApplication.class, args);
     }
+
 
     @Bean
     CommandLineRunner init(UserService userService) {
@@ -30,5 +32,11 @@ public class ExamPortalApplication {
                 System.out.println(">>> [AUTO-SETUP] Super Admin created: admin@examportal.com / admin123");
             }
         };
+    }
+
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

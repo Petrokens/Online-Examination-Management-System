@@ -6,6 +6,7 @@ import com.exam.examPortal.repository.AuditLogRepository;
 import com.exam.examPortal.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
@@ -24,6 +25,9 @@ public class UserService {
 
     @Autowired
     private AuditLogRepository auditLogRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder; // Add this line
 
     // This stores your history
     private List<String> auditLogs = new ArrayList<>();
@@ -48,40 +52,39 @@ public class UserService {
 
     // 1. REGISTER: Create a new account
     public User registerUser(User newUser) {
-
         // 1. Check if email exists
         Optional<User> existingUser = userRepository.findByEmail(newUser.getEmail());
         if (existingUser.isPresent()) {
             return null;
         }
 
-        // 2. Set Status based on Role
-        // This makes the registration decision "Atomic" –
-        // it happens the moment the data is created.
+        // 2. HASH THE PASSWORD BEFORE SAVING!
+        String encodedPassword = passwordEncoder.encode(newUser.getPassword());
+        newUser.setPassword(encodedPassword);
+
+        // 3. Set Status based on Role
         if ("FACULTY".equals(newUser.getRole())) {
-            newUser.setStatus("PENDING"); // Lock out teachers
+            newUser.setStatus("PENDING");
         } else {
-            newUser.setStatus("ACTIVE");  // Let students in
+            newUser.setStatus("ACTIVE");
         }
 
-        // 3. Save and return
         return userRepository.save(newUser);
     }
 
     // 2. LOGIN: Check if credentials are correct
     public User loginUser(String email, String password) {
-
-        // Find the user's safety box using their email
         Optional<User> foundUser = userRepository.findByEmail(email);
 
-        // If the box is NOT empty, AND the password exactly matches what they typed:
-        if (foundUser.isPresent() && foundUser.get().getPassword().equals(password)) {
-            return foundUser.get(); // Success! Hand the user data back to log them in.
+        // Use passwordEncoder.matches() instead of .equals()
+        if (foundUser.isPresent() && passwordEncoder.matches(password, foundUser.get().getPassword())) {
+            return foundUser.get();
         }
 
-        // If the email doesn't exist, or the password was wrong, return null.
         return null;
     }
+
+
     // 3. GET ALL: Used for the Admin Panel list
     public List<User> getAllUsers() {
         return userRepository.findAll();
