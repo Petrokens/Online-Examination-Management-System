@@ -43,9 +43,16 @@ public class AuthFilter implements Filter {
             chain.doFilter(req, res);
         } else {
             String uri = req.getRequestURI();
-            if (uri.contains("/user/login") || uri.contains("/admin/login") || uri.contains("/user/register")) {
+            // Allow public endpoints
+            if (uri.startsWith("/user/login") ||
+                    uri.startsWith("/admin/login") ||
+                    uri.startsWith("/user/register") ||
+                    uri.startsWith("/css/") ||
+                    uri.startsWith("/js/")) {
+
                 chain.doFilter(req, res);
             } else {
+                // Only redirect if it's NOT a public path
                 res.sendRedirect("/user/login?error=SessionExpired");
             }
         }

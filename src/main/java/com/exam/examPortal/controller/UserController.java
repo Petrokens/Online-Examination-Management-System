@@ -49,6 +49,7 @@ public class UserController {
 
             // 1. Generate both tokens
             String accessToken = jwtUtils.generateAccessToken(user.getEmail(), user.getRole());
+            System.out.println("DEBUG: ACCESS_TOKEN = " + accessToken);
             String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
 
             // 2. Set Access Token Cookie (Short lived)
@@ -57,6 +58,7 @@ public class UserController {
             accessCookie.setPath("/");
             accessCookie.setMaxAge(3600); // 1 hour
             response.addCookie(accessCookie);
+
 
             // 3. Set Refresh Token Cookie (Long lived)
             Cookie refreshCookie = new Cookie("refreshToken", refreshToken);

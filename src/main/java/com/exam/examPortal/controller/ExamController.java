@@ -49,7 +49,8 @@ public class ExamController {
         }
 
         model.addAttribute("exam", new Exam());
-        return "create_exam";
+        model.addAttribute("allStudents", userService.getAllStudents());
+        return "create-exam";
     }
 
     @PostMapping("/create")

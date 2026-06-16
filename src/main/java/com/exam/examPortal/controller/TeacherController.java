@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -66,5 +67,61 @@ public class TeacherController {
         model.addAttribute("exam", exam);
 
         return "teacher_results";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String showEditExamForm(@PathVariable Long id, HttpServletRequest request, Model model) {
+        // 1. Fetch the exam
+        Exam exam = examRepository.findById(id).orElse(null);
+        User teacher = userService.getAuthenticatedUser(request);
+
+        // 2. Security Check
+        if (exam == null || !exam.getTeacher().equals(teacher)) {
+            return "redirect:/teacher/dashboard?error=Unauthorized";
+        }
+
+        // 3. Inject Data
+        model.addAttribute("exam", exam);
+        model.addAttribute("allStudents", userService.getAllStudents()); // Fixes the empty list
+
+        return "create-exam"; // Reuses the form
+    }
+
+    @PostMapping("/edit-exam/{id}")
+    public String updateExam(@PathVariable Long id, @ModelAttribute Exam updatedExam) {
+        // 1. Fetch existing
+        Exam existingExam = examRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid ID"));
+
+        // 2. Map fields manually to keep the Teacher association intact
+        existingExam.setExamName(updatedExam.getExamName());
+        existingExam.setDurationMinutes(updatedExam.getDurationMinutes());
+        existingExam.setTotalMarks(updatedExam.getTotalMarks());
+        existingExam.setMaxAttempts(updatedExam.getMaxAttempts());
+
+        // 3. Update the Student Whitelist
+        existingExam.setAllowedStudents(updatedExam.getAllowedStudents());
+
+        // 4. Save
+        examRepository.save(existingExam);
+        return "redirect:/teacher/dashboard";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteExam(@PathVariable Long id, HttpServletRequest request) {
+        // 1. Authenticate Teacher
+        User teacher = userService.getAuthenticatedUser(request);
+        Exam exam = examRepository.findById(id).orElse(null);
+
+        // 2. Security Check: Ensure the exam exists and belongs to the teacher
+        if (teacher == null || !"FACULTY".equals(teacher.getRole()) ||
+                exam == null || !exam.getTeacher().equals(teacher)) {
+            return "redirect:/teacher/dashboard?error=Unauthorized";
+        }
+
+        // 3. Delete the exam
+        examRepository.deleteById(id);
+
+        return "redirect:/teacher/dashboard?message=DeletedSuccessfully";
     }
 }

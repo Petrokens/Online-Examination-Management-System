@@ -215,6 +215,8 @@ public class AdminController {
 
             response.addCookie(cookie);
 
+            response.addCookie(cookie);
+
             return "redirect:/admin/dashboard";
         }
 
