@@ -98,6 +98,7 @@ public class ExamController {
             return "redirect:/student/dashboard?error=limit_reached";
         }
 
+        model.addAttribute("student", user);
         List<Question> examQuestions = questionService.getQuestionsByExamId(id);
         model.addAttribute("exam", requestedExam);
         model.addAttribute("questions", examQuestions);

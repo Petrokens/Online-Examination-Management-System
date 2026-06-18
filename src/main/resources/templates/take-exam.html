@@ -23,9 +23,36 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+        .question-text,
+        .option-label {
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+        -webkit-user-drag: none;
+        user-drag: none;
+        -webkit-touch-callout: none;
+    }
+    .watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+
+    font-size: 5rem;
+    font-weight: bold;
+
+    color: rgba(0, 0, 0, 0.05);
+
+    pointer-events: none;
+    z-index: 1000;
+
+    white-space: nowrap;
+    }
     </style>
 </head>
 <body class="bg-light">
+<div class="watermark" th:text="${student?.name} + ' - ID: ' + ${student?.userId}"></div>
 
 <nav class="navbar navbar-dark bg-dark shadow-sm sticky-top">
     <div class="container-fluid px-4">
@@ -64,7 +91,8 @@
 
                     <input type="hidden" th:name="'answers[' + ${stat.index} + '].questionId'" th:value="${question.questionId}" />
 
-                    <p class="fs-5 fw-semibold text-dark mb-4" th:text="${question.questionText}">
+                    <p class="question-text fs-5 fw-semibold text-dark mb-4"
+                       th:text="${question.questionText}">
                         Question prompt placeholder text.
                     </p>
 
@@ -207,6 +235,11 @@
     });
 
     // --- 3. SECURITY SENTINEL ---
+    document.addEventListener('selectstart', function(e) {
+    e.preventDefault();
+    return false;
+    });
+
     function handleWarning(message) {
     if (isWarningActive) return;
     isWarningActive = true;

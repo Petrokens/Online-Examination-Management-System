@@ -6,6 +6,7 @@ import com.exam.examPortal.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -19,6 +20,14 @@ public class QuestionService {
     }
 
     public List<Question> getQuestionsByExamId(Long examId) {
-        return questionRepository.findByExam_ExamId(examId);
+        // 1. Fetch the list from the database
+        List<Question> questions = questionRepository.findByExam_ExamId(examId);
+
+        // 2. Shuffle the list (this modifies the 'questions' list in-place)
+        if (questions != null) {
+            Collections.shuffle(questions);
+        }
+        // 3. Return the shuffled list
+        return questions;
     }
 }
