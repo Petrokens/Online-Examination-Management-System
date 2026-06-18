@@ -208,20 +208,34 @@
 
     // --- 3. SECURITY SENTINEL ---
     function handleWarning(message) {
-        if (isWarningActive) return;
-        isWarningActive = true;
-        warningCount++;
+    if (isWarningActive) return;
+    isWarningActive = true;
+    warningCount++;
 
-        if (warningCount < 3) {
-            document.getElementById("warningText").innerText = `${message} (${warningCount}/3)`;
-            warningModal.show();
-            setTimeout(() => { warningModal.hide(); isWarningActive = false; }, 3000);
-        } else {
-            document.getElementById("warningText").innerText = "Final Warning: 3 Strikes Reached. Exam Terminated.";
-            warningModal.show();
-            setTimeout(() => { window.location.href = "/exam/force-submit"; }, 2500);
-        }
+    if (warningCount < 3) {
+        document.getElementById("warningText").innerText =
+            `${message} (${warningCount}/3)`;
+
+        warningModal.show();
+
+        setTimeout(() => {
+            warningModal.hide();
+            isWarningActive = false;
+        }, 3000);
+
+    } else {
+        document.getElementById("warningText").innerText =
+            "Final Warning: 3 Strikes Reached. Exam Terminated.";
+
+        warningModal.show();
+
+        const examId = /*[[${exam.examId}]]*/ 0;
+
+        setTimeout(() => {
+            window.location.href = "/exam/force-submit/" + examId;
+        }, 2500);
     }
+}
 
     document.addEventListener("visibilitychange", () => { if (document.hidden) handleWarning("Security: Tab switching detected."); });
     window.addEventListener("blur", () => { handleWarning("Security: Window focus lost."); });
@@ -358,6 +372,7 @@
             body: JSON.stringify({ questionId, selectedOption })
         });
     }
+
 
     function triggerSubmissionSafetyNet() { bootstrapSafetyModal.show(); }
     function executeFinalFormSubmission() { bootstrapSafetyModal.hide(); document.getElementById('examForm').submit(); }

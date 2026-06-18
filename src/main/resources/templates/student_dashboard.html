@@ -6,10 +6,14 @@
 </head>
 <body class="bg-light">
 
-<div th:if="${status == 'terminated'}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+<div th:if="${status == 'terminated'}"
+     class="alert alert-danger shadow-sm"
+     role="alert">
     <h4 class="alert-heading">⚠️ Exam Terminated!</h4>
-    <p>Your session was automatically terminated due to security policy violations. A score of 0% has been recorded for this attempt.</p>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <p>
+        Your session was automatically terminated due to security policy violations.
+        A score of 0% has been recorded for this attempt.
+    </p>
 </div>
 
 <div class="container mt-5">
